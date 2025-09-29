@@ -20,6 +20,7 @@ Route::post('/register', [App\Http\Controllers\Api\AuthController::class, 'regis
 
 // Senior Authentication Routes (for Eldera mobile app)
 Route::post('/senior/login', [App\Http\Controllers\Api\SeniorAuthController::class, 'login']);
+Route::post('/senior/direct-login', [App\Http\Controllers\Api\SeniorAuthController::class, 'directLogin']);
 Route::post('/senior/register', [App\Http\Controllers\Api\SeniorAuthController::class, 'register']);
 
 // Public Announcements API (for Eldera app)

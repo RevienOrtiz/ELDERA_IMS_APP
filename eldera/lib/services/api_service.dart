@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/secure_logger.dart';
+import '../config/environment_config.dart';
 
 /// API Service for connecting to localhost XAMPP server
 class ApiService {
   /// Base URL for the localhost API
-  static const String baseUrl = 'http://localhost/ELDERA_IMS/public/api';
+  static String get baseUrl => '${EnvironmentConfig.apiBaseUrl}/api';
 
   /// Headers for API requests
   static Map<String, String> _headers = {

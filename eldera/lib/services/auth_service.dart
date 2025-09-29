@@ -16,52 +16,89 @@ class AuthService {
   static Future<Map<String, dynamic>> signIn(
       {required String oscaId, required String password}) async {
     try {
-      // Log the request for debugging
-      SecureLogger.info('Attempting login with OSCA ID: $oscaId');
+      // Enhanced logging for debugging
+      SecureLogger.info('===== LOGIN ATTEMPT DEBUG =====');
+      SecureLogger.info('Attempting login with OSCA ID: "$oscaId"');
+      SecureLogger.info('Password length: ${password.length}');
+      SecureLogger.info('API URL: $_baseUrl/api/senior/direct-login');
       
+      // Prepare request body
+      final requestBody = {
+        'osca_id': oscaId,
+        'password': password,
+      };
+      
+      SecureLogger.info('Request body: ${json.encode(requestBody)}');
+      
+      // REAL API CALL
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/senior/login'),
+        Uri.parse('$_baseUrl/api/senior/direct-login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'osca_id': oscaId,
-          'password': password,
-        }),
+        body: json.encode(requestBody),
       );
 
+      // Log the response
+      SecureLogger.info('Response status code: ${response.statusCode}');
+      SecureLogger.info('Response body: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        SecureLogger.info('Login successful, received token and user data');
         
         // Store token securely
-        await SecureStorageService.storeAuthToken(
-          data['access_token'], 
-          expiresIn: Duration(days: 30)
-        );
-        
+        await SecureStorageService.storeAuthToken(data['access_token'],
+            expiresIn: Duration(days: 30));
+        SecureLogger.info('Token stored securely');
+
         // Set authentication state
         _isAuthenticated = true;
-        
+
         // Create user object from response
-        _currentUser = app_user.User(
-          id: data['user']['id'].toString(),
-          name: data['user']['name'],
-          age: 0, // Will be updated when profile is fetched
-          phoneNumber: '', // Will be updated when profile is fetched
-          idStatus: 'Senior Citizen',
-        );
-        
-        // Fetch complete profile
-        await _fetchUserProfile();
+        try {
+          _currentUser = app_user.User(
+            id: data['user']['id'].toString(),
+            name: data['user']['name'],
+            age: 0, // Will be updated when profile is fetched
+            phoneNumber: '', // Will be updated when profile is fetched
+            idStatus: 'Senior Citizen',
+          );
+          SecureLogger.info('Created user object: ${_currentUser?.name}');
+        } catch (e) {
+          SecureLogger.error('Error creating user object: $e');
+          // Continue with login even if user object creation fails
+        }
+
+        // Now that login is working, fetch the user profile
+        try {
+          SecureLogger.info('Fetching user profile...');
+          await _fetchUserProfile();
+          SecureLogger.info('Profile fetched successfully');
+        } catch (e) {
+          // Continue even if profile fetch fails
+          SecureLogger.error('Error fetching profile: $e');
+        }
 
         return {
           'success': true,
+          'message': 'Login successful',
           'user': _currentUser,
         };
       } else {
-        final data = json.decode(response.body);
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Authentication failed',
-        };
+        SecureLogger.error('Login failed with status code: ${response.statusCode}');
+        try {
+          final data = json.decode(response.body);
+          SecureLogger.error('Error message: ${data['message'] ?? 'No error message'}');
+          return {
+            'success': false,
+            'message': data['message'] ?? 'Authentication failed',
+          };
+        } catch (e) {
+          SecureLogger.error('Could not parse error response: $e');
+          return {
+            'success': false,
+            'message': 'Authentication failed: Could not parse server response',
+          };
+        }
       }
     } catch (e) {
       SecureLogger.error('Authentication error: $e');
@@ -77,7 +114,8 @@ class AuthService {
     try {
       final token = await SecureStorageService.getAuthToken();
       if (token == null) {
-        throw Exception('No authentication token found');
+        SecureLogger.error('No authentication token found for profile fetch');
+        return; // Continue with basic user info instead of throwing exception
       }
 
       final response = await http.get(
@@ -91,25 +129,35 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final profileData = data['data'];
-        
-        // Calculate age from date of birth
-        final DateTime dob = DateTime.parse(profileData['date_of_birth']);
-        final int age = DateTime.now().difference(dob).inDays ~/ 365;
-        
-        // Update current user with complete profile data
-        _currentUser = app_user.User(
-          id: _currentUser!.id,
-          name: profileData['name'],
-          age: age,
-          phoneNumber: profileData['contact_number'] ?? '',
-          idStatus: 'Senior Citizen',
-          birthDate: profileData['date_of_birth'],
-          address: '${profileData['address']['barangay']}, ${profileData['address']['city']}, ${profileData['address']['province']}',
-          profileImageUrl: profileData['photo_path'],
-        );
+
+        try {
+          // Calculate age from date of birth
+          final DateTime dob = DateTime.parse(profileData['date_of_birth']);
+          final int age = DateTime.now().difference(dob).inDays ~/ 365;
+
+          // Update current user with complete profile data
+          _currentUser = app_user.User(
+            id: _currentUser!.id,
+            name: profileData['name'],
+            age: age,
+            phoneNumber: profileData['contact_number'] ?? '',
+            idStatus: 'Senior Citizen',
+            birthDate: profileData['date_of_birth'],
+            address:
+                '${profileData['address']['barangay'] ?? ''}, ${profileData['address']['city'] ?? ''}, ${profileData['address']['province'] ?? ''}'.trim(),
+            profileImageUrl: profileData['photo_path'],
+          );
+        } catch (parseError) {
+          SecureLogger.error('Error parsing profile data: $parseError');
+          // Keep existing user data if parsing fails
+        }
+      } else {
+        SecureLogger.error('Profile fetch failed with status: ${response.statusCode}');
+        // Continue with basic user info
       }
     } catch (e) {
       SecureLogger.error('Error fetching user profile: $e');
+      // Continue with basic user info
     }
   }
 
@@ -117,7 +165,7 @@ class AuthService {
   static Future<Map<String, dynamic>> signOut() async {
     try {
       final token = await SecureStorageService.getAuthToken();
-      
+
       if (token != null) {
         // Call logout API
         await http.post(
@@ -128,12 +176,12 @@ class AuthService {
           },
         );
       }
-      
+
       // Clear token and reset state
       await SecureStorageService.clearAuthToken();
       _isAuthenticated = false;
       _currentUser = null;
-      
+
       return {
         'success': true,
       };
@@ -161,73 +209,5 @@ class AuthService {
   /// Check if a user is currently authenticated
   static bool isAuthenticated() {
     return _isAuthenticated;
-  }
-
-  /// Register a new user account
-  static Future<Map<String, dynamic>> register({
-    required String oscaId,
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String password,
-  }) async {
-    try {
-      // Log the request for debugging
-      SecureLogger.info('Attempting registration with OSCA ID: $oscaId');
-      
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/senior/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'osca_id': oscaId,
-          'first_name': firstName,
-          'last_name': lastName,
-          'email': email,
-          'password': password,
-        }),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        
-        // Store token securely
-        await SecureStorageService.storeAuthToken(
-          data['access_token'], 
-          expiresIn: Duration(days: 30)
-        );
-        
-        // Set authentication state
-        _isAuthenticated = true;
-        
-        // Create user object from response
-        _currentUser = app_user.User(
-          id: data['user']['id'].toString(),
-          name: '${data['user']['first_name']} ${data['user']['last_name']}',
-          age: 0, // Will be updated when profile is fetched
-          phoneNumber: '', // Will be updated when profile is fetched
-          idStatus: 'Senior Citizen',
-        );
-        
-        // Fetch complete profile
-        await _fetchUserProfile();
-
-        return {
-          'success': true,
-          'user': _currentUser,
-        };
-      } else {
-        final data = json.decode(response.body);
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Registration failed',
-        };
-      }
-    } catch (e) {
-      SecureLogger.error('Registration error: $e');
-      return {
-        'success': false,
-        'message': 'Registration failed: ${e.toString()}',
-      };
-    }
   }
 }

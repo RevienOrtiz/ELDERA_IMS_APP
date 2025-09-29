@@ -10,9 +10,93 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class SeniorAuthController extends Controller
 {
+    /**
+     * Direct login for senior app users - simplified authentication
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function directLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'osca_id' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        Log::info('Direct login attempt for OSCA ID: "' . $request->osca_id . '"');
+        
+        // Debug all app_users with similar OSCA IDs to help diagnose the issue
+        $similarUsers = AppUser::where('osca_id', 'like', '%' . substr($request->osca_id, -3) . '%')->get();
+        Log::info('Similar OSCA IDs in database: ' . json_encode($similarUsers->pluck('osca_id')));
+        
+        // CRITICAL FIX: Make OSCA ID lookup more flexible
+        // Try multiple formats to find the user (with/without hyphen, case insensitive)
+        $oscaId = $request->osca_id;
+        $oscaIdWithoutHyphen = str_replace('-', '', $oscaId);
+        $oscaIdWithHyphen = substr($oscaIdWithoutHyphen, 0, 4) . '-' . substr($oscaIdWithoutHyphen, 4);
+        
+        Log::info('Trying multiple OSCA ID formats', [
+            'original' => $oscaId,
+            'without_hyphen' => $oscaIdWithoutHyphen,
+            'with_hyphen' => $oscaIdWithHyphen
+        ]);
+        
+        // Try all possible formats
+        $appUser = AppUser::where('osca_id', $oscaId)
+            ->orWhere('osca_id', $oscaIdWithoutHyphen)
+            ->orWhere('osca_id', $oscaIdWithHyphen)
+            ->first();
+        
+        if (!$appUser) {
+            Log::info('App user not found for OSCA ID: ' . $request->osca_id);
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+        
+        // For debugging - log the stored hash length (not the actual hash for security)
+        Log::info('Stored password hash length: ' . strlen($appUser->password));
+        Log::info('Input password length: ' . strlen($request->password));
+        
+        // Verify password
+        if (!Hash::check($request->password, $appUser->password)) {
+            Log::info('Password verification failed for OSCA ID: ' . $request->osca_id);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+        
+        // Create token only if password is correct
+        $token = $appUser->createToken('app_user_token')->plainTextToken;
+        
+        Log::info('Login successful with proper verification', [
+            'osca_id' => $request->osca_id
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful',
+            'user' => [
+                'id' => $appUser->id,
+                'name' => $appUser->first_name . ' ' . $appUser->last_name,
+                'email' => $appUser->email,
+                'role' => $appUser->role,
+                'osca_id' => $appUser->osca_id
+            ],
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
+    }
     /**
      * Login senior user and create token.
      *
@@ -33,22 +117,33 @@ class SeniorAuthController extends Controller
         // First try to find the user in the app_users table
         $appUser = AppUser::where('osca_id', $request->osca_id)->first();
         
-        if ($appUser && Hash::check($request->password, $appUser->password)) {
-            // App user found and password matches
-            $token = $appUser->createToken('app_user_token')->plainTextToken;
+        if ($appUser) {
+            // Debug the password check
+            \Log::info('Login attempt for OSCA ID: ' . $request->osca_id);
+            \Log::info('Password check result: ' . (Hash::check($request->password, $appUser->password) ? 'true' : 'false'));
             
-            return response()->json([
-                'message' => 'Login successful',
-                'user' => [
-                    'id' => $appUser->id,
-                    'name' => $appUser->first_name . ' ' . $appUser->last_name,
-                    'email' => $appUser->email,
-                    'role' => $appUser->role,
-                    'osca_id' => $appUser->osca_id
-                ],
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ]);
+            if (Hash::check($request->password, $appUser->password)) {
+                // App user found and password matches
+                $token = $appUser->createToken('app_user_token')->plainTextToken;
+                
+                return response()->json([
+                    'message' => 'Login successful',
+                    'user' => [
+                        'id' => $appUser->id,
+                        'name' => $appUser->first_name . ' ' . $appUser->last_name,
+                        'email' => $appUser->email,
+                        'role' => $appUser->role,
+                        'osca_id' => $appUser->osca_id
+                    ],
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                ]);
+            } else {
+                // Password doesn't match
+                return response()->json([
+                    'message' => 'Invalid password for app user'
+                ], 401);
+            }
         }
         
         // If not found in app_users, try the legacy approach with seniors and users tables

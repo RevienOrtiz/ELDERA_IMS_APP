@@ -5,7 +5,6 @@ import '../services/font_size_service.dart';
 import '../services/password_validation_service.dart';
 import '../config/app_colors.dart';
 import 'main_screen.dart';
-import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -83,16 +82,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String? _validateOscaId(String oscaId) {
-    // Basic OSCA ID validation - accepts format like 2025-6248
     if (oscaId.isEmpty) {
       return 'OSCA ID is required';
     }
     
-    // Simple format check for OSCA ID (can be customized based on actual format)
-    final oscaIdRegex = RegExp(r'^\d{4}-\d{4}$');
-    if (!oscaIdRegex.hasMatch(oscaId)) {
-      return 'Please enter a valid OSCA ID (format: YYYY-NNNN)';
-    }
+    // Removed format constraint since validation happens at database level
+    // and app_users table may have different formats
     
     return null;
   }
@@ -151,20 +146,30 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Sanitize inputs before sending to server
-      final sanitizedOscaId = _sanitizeInput(oscaId);
+      // CRITICAL FIX: Ensure OSCA ID is in the exact format expected by the database
+      // Don't sanitize or modify it at all - send exactly what user entered
+      final oscaIdForAuth = oscaId;
+      
+      // Log the OSCA ID for debugging
+      print('Using OSCA ID for auth: $oscaIdForAuth');
 
       final result = await AuthService.signIn(
-        oscaId: sanitizedOscaId,
-        password:
-            password, // Don't sanitize password as it might affect authentication
+        oscaId: oscaIdForAuth,
+        password: password, // Don't sanitize password as it might affect authentication
       );
 
-      if (result['success']) {
+      // Debug print to verify the result
+      print('Login result: $result');
+
+      if (result['success'] == true) {
         // Clear failed attempts on successful login
         PasswordValidationService.clearFailedAttempts(oscaId);
 
-        _showMessage(result['message'], isError: false);
+        _showMessage('Login successful', isError: false);
+        
+        // Add a small delay to ensure the message is shown
+        await Future.delayed(Duration(milliseconds: 500));
+        
         // Navigate to main screen
         if (mounted) {
           Navigator.pushReplacement(
@@ -300,6 +305,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _oscaIdController,
                       keyboardType: TextInputType.text,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: const [AutofillHints.username],
                       decoration: InputDecoration(
                         labelText: 'Enter your OSCA ID no.',
                         hintText: 'Enter your OSCA ID no.',
@@ -319,6 +327,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: const [AutofillHints.password],
                       decoration: InputDecoration(
                         labelText: 'Password',
                         hintText: 'Enter your password',
@@ -381,37 +392,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Registration Link
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              // Admin Note
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
                   children: [
                     Icon(
-                      Icons.person_add,
-                      color: Colors.white,
+                      Icons.info_outline,
+                      color: Colors.white70,
                       size: 24,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(height: 8),
                     Text(
-                      'Create New Account',
+                      'Accounts are pre-created by administrators.\nContact your local government office if you need assistance.',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: _getSafeScaledFontSize(baseSize: 1.1),
-                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
+                        fontSize: _getSafeScaledFontSize(baseSize: 0.9),
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),

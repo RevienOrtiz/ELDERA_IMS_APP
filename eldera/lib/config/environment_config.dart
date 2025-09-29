@@ -53,13 +53,24 @@ class EnvironmentConfig {
           defaultValue: 'https://staging.eldera-ims.com',
         );
       default:
-        return const String.fromEnvironment(
-          'API_URL_DEV',
-          defaultValue: 'http://127.0.0.1:8000',
-        );
+        // API URL configuration for different platforms:
+        // - Web (Chrome): Use localhost/127.0.0.1
+        // - Android emulator: Use 10.0.2.2 (special IP that points to host machine)
+        // - Physical devices: Use your computer's actual IP address
+        if (kIsWeb) {
+          return const String.fromEnvironment(
+            'API_URL_DEV',
+            defaultValue: 'http://127.0.0.1:8000', // For web browser
+          );
+        } else {
+          return const String.fromEnvironment(
+            'API_URL_DEV',
+            defaultValue: 'http://192.168.18.72:8000', // For mobile devices
+          );
+        }
     }
   }
-  
+
   // Legacy IMS API Configuration
   static String get imsApiBaseUrl {
     switch (_environment) {

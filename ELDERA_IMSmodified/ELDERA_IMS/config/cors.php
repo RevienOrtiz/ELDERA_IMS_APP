@@ -24,6 +24,8 @@ return [
         'http://localhost:8080', // Vue development
         'http://127.0.0.1:3000',
         'http://127.0.0.1:8080',
+        'http://localhost:*',     // Allow all localhost ports
+        'http://127.0.0.1:*',     // Allow all 127.0.0.1 ports
         // Add your production Flutter app domain here
         // 'https://your-flutter-app.com',
     ],

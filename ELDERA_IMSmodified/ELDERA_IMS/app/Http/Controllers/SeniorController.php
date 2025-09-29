@@ -6,6 +6,7 @@ use App\Models\Senior;
 use App\Models\Barangay;
 use App\Models\Application;
 use App\Models\BenefitsApplication;
+use App\Models\AppUser;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -716,32 +717,31 @@ class SeniorController extends Controller
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
         
-        // Check if a user with this OSCA ID already exists
-        $existingUser = \App\Models\User::where('email', $senior->osca_id)->first();
+        // Check if an app user with this OSCA ID already exists
+        $existingAppUser = \App\Models\AppUser::where('osca_id', $senior->osca_id)->first();
         
-        if ($existingUser) {
-            // If user exists, update the password and link to senior
-            $existingUser->password = bcrypt($request->password);
-            $existingUser->role = 'senior';
-            $existingUser->save();
+        if ($existingAppUser) {
+            // If app user exists, update the password
+            $existingAppUser->password = bcrypt($request->password);
+            $existingAppUser->save();
             
-            // Link existing user to senior
-            $senior->user_id = $existingUser->id;
+            // Mark senior as having an app account
             $senior->has_app_account = true;
             $senior->save();
             
-            return redirect()->route('seniors')->with('success', 'Existing user account updated and linked to senior.');
+            return redirect()->route('seniors')->with('success', 'Existing app account updated for senior.');
         } else {
-            // Create new user account with OSCA ID as email
-            $user = new \App\Models\User();
-            $user->name = $senior->first_name . ' ' . $senior->last_name;
-            $user->email = $senior->osca_id;
-            $user->password = bcrypt($request->password);
-            $user->role = 'senior';
-            $user->save();
+            // Create new app user account
+            $appUser = new \App\Models\AppUser();
+            $appUser->osca_id = $senior->osca_id;
+            $appUser->first_name = $senior->first_name;
+            $appUser->last_name = $senior->last_name;
+            $appUser->email = $senior->email ?? null;
+            $appUser->password = bcrypt($request->password);
+            $appUser->role = 'senior';
+            $appUser->save();
             
-            // Link user to senior
-            $senior->user_id = $user->id;
+            // Mark senior as having an app account
             $senior->has_app_account = true;
             $senior->save();
             

@@ -1,0 +1,1 @@
+@include('tables.seniors', ['includeStylesOnly' => false])

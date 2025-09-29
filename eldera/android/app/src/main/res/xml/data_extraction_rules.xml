@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!-- Cloud backup rules -->
+    <cloud-backup>
+        <!-- Exclude sensitive data from cloud backup -->
+        <exclude domain="sharedpref" path="flutter.secure_storage"/>
+        <exclude domain="sharedpref" path="auth_tokens"/>
+        <exclude domain="sharedpref" path="user_credentials"/>
+        <exclude domain="database" path="secure.db"/>
+        <exclude domain="file" path="keys/"/>
+        <exclude domain="file" path="certificates/"/>
+        
+        <!-- Include only non-sensitive app preferences -->
+        <include domain="sharedpref" path="app_preferences"/>
+        <include domain="sharedpref" path="font_size_settings"/>
+        <include domain="sharedpref" path="notification_settings"/>
+    </cloud-backup>
+    
+    <!-- Device transfer rules -->
+    <device-transfer>
+        <!-- Exclude all sensitive data from device transfers -->
+        <exclude domain="sharedpref" path="flutter.secure_storage"/>
+        <exclude domain="sharedpref" path="auth_tokens"/>
+        <exclude domain="sharedpref" path="user_credentials"/>
+        <exclude domain="database" path="secure.db"/>
+        <exclude domain="file" path="keys/"/>
+        <exclude domain="file" path="certificates/"/>
+        <exclude domain="file" path="cache/"/>
+        
+        <!-- Include only basic app settings -->
+        <include domain="sharedpref" path="app_preferences"/>
+        <include domain="sharedpref" path="font_size_settings"/>
+    </device-transfer>
+</data-extraction-rules>

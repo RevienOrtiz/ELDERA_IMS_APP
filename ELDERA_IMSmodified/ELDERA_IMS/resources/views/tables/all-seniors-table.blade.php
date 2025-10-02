@@ -3,6 +3,7 @@
     <table class="records-table">
         <thead>
             <tr>
+                <th>NO.</th>
                 <th>OSCA ID NO.</th>
                 <th class="sortable-header" data-sort="name">
                     FULL NAME
@@ -30,9 +31,10 @@
             @if($seniors && $seniors->count() > 0)
                 @foreach($seniors as $index => $senior)
                 <tr>
+                    <td>{{ $index + 1 }}</td>
                     <td>{{ $senior->osca_id }}</td>
-                    <td>{{ $senior->full_name }}</td>
-                    <td>{{ $senior->age ?? 'N/A' }}</td>
+                    <td>{{ $senior->first_name }} {{ $senior->last_name }}</td>
+                    <td>{{ \Carbon\Carbon::parse($senior->date_of_birth)->age }}</td>
                     <td>{{ $senior->sex }}</td>
                     <td>{{ $senior->barangay }}</td>
                     <td>
@@ -60,7 +62,7 @@
                             <a href="{{ route('edit_senior', ['id' => $senior->id]) }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="showDeleteModal('{{ $senior->id }}', '{{ $senior->full_name }}')">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="showDeleteModal('{{ $senior->id }}', '{{ $senior->first_name }} {{ $senior->last_name }}')">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
@@ -69,7 +71,7 @@
                 @endforeach
             @else
                 <tr>
-                    <td colspan="9" style="text-align: center; padding: 20px;">
+                    <td colspan="10" style="text-align: center; padding: 20px;">
                         No seniors found or data not loaded properly.
                         <br>Debug: Seniors count = {{ $seniors ? $seniors->count() : 'null' }}
                     </td>

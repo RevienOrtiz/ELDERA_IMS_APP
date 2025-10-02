@@ -654,7 +654,7 @@ class SeniorController extends Controller
             // Clear relevant caches after updating ID application
             $this->clearRelevantCaches();
 
-            return redirect()->route('seniors')
+            return redirect()->route('seniors.pension')
                 ->with('success', 'Pension application updated successfully! Status: ' . ucfirst(str_replace('_', ' ', $validatedData['status'])));
         } catch (\Exception $e) {
             Log::error('Pension Update Error', [
@@ -889,7 +889,10 @@ class SeniorController extends Controller
                 'status' => $validatedData['status']
             ]);
 
-            return redirect()->route('seniors')
+            // Clear caches so the ID applicants table reflects changes immediately
+            $this->clearRelevantCaches();
+
+            return redirect()->route('seniors.id-applications')
                 ->with('success', 'Senior ID application updated successfully! Status: ' . ucfirst(str_replace('_', ' ', $validatedData['status'])));
         } catch (\Exception $e) {
             return redirect()->back()
@@ -1011,10 +1014,10 @@ class SeniorController extends Controller
             $application = Application::findOrFail($id);
             $application->delete();
 
-            return redirect()->back()
+            return redirect()->route('seniors.pension')
                 ->with('success', 'Pension application deleted successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()
+            return redirect()->route('seniors.pension')
                 ->with('error', 'Unable to delete pension application. Please try again.');
         }
     }
@@ -1028,10 +1031,10 @@ class SeniorController extends Controller
             $application = Application::findOrFail($id);
             $application->delete();
 
-            return redirect()->back()
+            return redirect()->route('seniors.benefits')
                 ->with('success', 'Benefits application deleted successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()
+            return redirect()->route('seniors.benefits')
                 ->with('error', 'Unable to delete benefits application. Please try again.');
         }
     }
@@ -1045,7 +1048,10 @@ class SeniorController extends Controller
             $application = Application::findOrFail($id);
             $application->delete();
 
-            return redirect()->back()
+            // Clear caches so the tables reflect the deletion immediately
+            $this->clearRelevantCaches();
+
+            return redirect()->route('seniors.id-applications')
                 ->with('success', 'ID application deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -1283,7 +1289,7 @@ class SeniorController extends Controller
                 'notes' => 'Updated via edit form at ' . now()
             ]);
 
-            return redirect()->route('seniors')
+            return redirect()->route('seniors.benefits')
                     ->with('success', 'Benefits application updated successfully! Status: ' . ucfirst(str_replace('_', ' ', $validatedData['status'])));
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed in updateBenefits', ['errors' => $e->errors(), 'data' => $request->all()]);

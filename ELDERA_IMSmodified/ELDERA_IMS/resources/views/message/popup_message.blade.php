@@ -381,15 +381,21 @@
     }
 </style>
 
+@php
+    // Pull and clear flash messages to ensure they don't persist across reloads
+    $successMessage = session()->pull('success');
+    $errorMessage = session()->pull('error');
+@endphp
+
 <script>
-    // ✅ Show Success Modal if session has success
-    @if(session('success'))
+    // ✅ Show Success Modal if there is a success message
+    @if(!empty($successMessage))
         document.addEventListener('DOMContentLoaded', function() {
             var successModal = new bootstrap.Modal(document.getElementById('successModal'), {
                 backdrop: 'static',
                 keyboard: false
             });
-            var successMessage = "{{ session('success') }}";
+            var successMessage = {!! json_encode($successMessage) !!};
             var successCard = document.getElementById('successCard');
             var successIcon = document.getElementById('successIcon');
             var successTitle = document.getElementById('successTitle');
@@ -468,11 +474,11 @@
         });
     @endif
 
-    // ❌ Show Error Modal if session has error
-    @if(session('error'))
+    // ❌ Show Error Modal if there is an error message
+    @if(!empty($errorMessage))
         document.addEventListener('DOMContentLoaded', function() {
             var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-            document.getElementById('errorMessage').innerText = "{{ session('error') }}";
+            document.getElementById('errorMessage').innerText = {!! json_encode($errorMessage) !!};
             errorModal.show();
         });
     @endif

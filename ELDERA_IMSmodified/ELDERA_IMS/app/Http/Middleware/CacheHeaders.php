@@ -34,10 +34,11 @@ class CacheHeaders
                 $response->headers->set('Cache-Control', 'public, max-age=120');
                 $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 120) . ' GMT');
             }
-            // Seniors tables - shorter cache for faster updates
+            // Seniors tables - disable caching to reflect updates immediately
             elseif (in_array($path, ['Seniors', 'Seniors/benefits', 'Seniors/pension', 'Seniors/id-applications'])) {
-                $response->headers->set('Cache-Control', 'public, max-age=30');
-                $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 30) . ' GMT');
+                $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Expires', '0');
             }
             // Forms and dynamic content - cache for 30 seconds
             elseif (str_contains($path, 'Form_') || str_contains($path, 'edit-') || str_contains($path, 'view-')) {

@@ -245,9 +245,39 @@
                 <div class="action-section">
                     <button class="add-btn" id="add-btn" onclick="redirectToForm()">
                         <i class="fas fa-plus"></i> <span id="add-btn-text">Add New Senior</span>
-                            </button>
-                        </div>
-                    </div>
+                    </button>
+                    <a href="{{ route('seniors.pension.report') }}" class="report-btn" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Generate Pension Report
+                    </a>
+                </div>
+            </div>
+                    
+            <style>
+                .action-section {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                }
+                .report-btn {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 10px 15px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    font-size: 14px;
+                }
+                .report-btn i {
+                    margin-right: 5px;
+                }
+                .report-btn:hover {
+                    background-color: #45a049;
+                    color: white;
+                }
+            </style>
 
 
             <!-- Success/Error Messages - Now handled by popup_message.blade.php -->

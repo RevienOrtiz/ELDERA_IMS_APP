@@ -90,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/Events/{id}/participants/{seniorId}/attendance', [App\Http\Controllers\EventController::class, 'updateAttendance'])->name('events.update-attendance');
 
     Route::get('/Seniors', [SeniorController::class, 'index'])->name('seniors');
+    Route::get('/Seniors/pension-report', [SeniorController::class, 'generatePensionReport'])->name('seniors.pension.report');
     
     // App Account Creation
     Route::get('/Seniors/{id}/app-account/create', [SeniorController::class, 'createAppAccount'])->name('senior.app_account.create');

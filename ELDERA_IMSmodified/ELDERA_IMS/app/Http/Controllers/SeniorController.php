@@ -13,9 +13,38 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View as ViewFacade;
 
 class SeniorController extends Controller
 {
+    /**
+     * Generate a PDF report of seniors who can receive pensions
+     */
+    public function generatePensionReport(Request $request)
+    {
+        // Get seniors with pension from the database
+        $pensionSeniors = Senior::select([
+                'id', 'osca_id', 'first_name', 'last_name', 'middle_name', 
+                'sex', 'barangay', 'date_of_birth', 'created_at'
+            ])
+            ->where('has_pension', 1)
+            ->orderBy('last_name')
+            ->get();
+            
+        // Generate the PDF view
+        $html = ViewFacade::make('reports.pension_report', [
+            'seniors' => $pensionSeniors,
+            'date' => now()->format('F d, Y'),
+            'total' => $pensionSeniors->count()
+        ])->render();
+        
+        // Return the view for browser-based PDF generation
+        return response()->view('reports.pension_report_wrapper', [
+            'content' => $html,
+            'title' => 'Seniors with Pension Report'
+        ]);
+    }
+    
     /**
      * Clear relevant caches when data changes
      */
@@ -97,9 +126,9 @@ class SeniorController extends Controller
         $dbSortField = $sortMapping[$sortField] ?? 'created_at';
         $query->orderBy($dbSortField, $sortDirection);
         
-        // Add pagination to seniors query for better performance
-        $seniors = $query->paginate(20);
-        $totalSeniors = Senior::count();
+        // Load all seniors without pagination to allow scrolling through all records
+        $seniors = $query->get();
+        $totalSeniors = $seniors->count();
         
         // Cache barangays as they don't change frequently
         $barangays = cache()->remember('active_barangays', 3600, function () {

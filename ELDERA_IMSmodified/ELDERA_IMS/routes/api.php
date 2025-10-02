@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\OCRController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// OCR Processing Routes
+Route::post('/ocr/process', [OCRController::class, 'process']);
+Route::post('/vision/process-form', [App\Http\Controllers\Api\GoogleVisionController::class, 'processForm']);
 
 // Public routes
 Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);

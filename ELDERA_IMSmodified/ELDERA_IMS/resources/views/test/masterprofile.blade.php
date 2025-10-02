@@ -56,6 +56,32 @@
                              <x-photo-upload id="photo_upload" name="photo" />
                         </div>
 
+                        <!-- Document Upload for OCR Scanning -->
+                        <div class="mb-4">
+                            <div class="card border-primary shadow">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-file-upload me-2"></i>Upload Documents for OCR Scanning</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Time-saving feature:</strong> Upload a completed form or document to automatically fill in the fields below using OCR technology.
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="file" class="form-control form-control-sm" id="ocrFileUpload" name="ocr_document" accept=".jpg,.jpeg,.png,.pdf">
+                                    </div>
+                                    <div class="mb-3">
+                                        <button class="btn btn-primary btn-sm" style="width: 120px;" type="button" id="processOcrBtn">
+                                            <i class="fas fa-magic me-1"></i> Scan
+                                        </button>
+                                    </div>
+                                    <div id="ocrStatus" class="mt-2 small"></div>
+                                    <div class="mt-2 small text-muted">
+                                        <i class="fas fa-lightbulb me-1"></i> Supported file types: JPG, JPEG, PNG, PDF
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                           
               
 
@@ -1935,6 +1961,71 @@
         });
 
         // Monthly income is now auto-filled via the value attribute in the input field
+        
+        // OCR Document Processing
+        document.addEventListener('DOMContentLoaded', function() {
+            const ocrFileUpload = document.getElementById('ocrFileUpload');
+            const processOcrBtn = document.getElementById('processOcrBtn');
+            const ocrStatus = document.getElementById('ocrStatus');
+            
+            if (processOcrBtn) {
+                processOcrBtn.addEventListener('click', function() {
+                    if (!ocrFileUpload.files.length) {
+                        ocrStatus.innerHTML = '<span class="text-danger">Please select a document to scan</span>';
+                        return;
+                    }
+                    
+                    const file = ocrFileUpload.files[0];
+                    const formData = new FormData();
+                    formData.append('document', file);
+                    
+                    ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing document, please wait...</span>';
+                    
+                    fetch('/api/ocr/process-form', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
+                            
+                            // Fill form fields with extracted data
+                            if (data.data.last_name) document.querySelector('input[name="last_name"]').value = data.data.last_name;
+                            if (data.data.first_name) document.querySelector('input[name="first_name"]').value = data.data.first_name;
+                            if (data.data.middle_name) document.querySelector('input[name="middle_name"]').value = data.data.middle_name;
+                            if (data.data.date_of_birth) document.querySelector('input[name="date_of_birth"]').value = data.data.date_of_birth;
+                            if (data.data.birth_place) document.querySelector('input[name="birth_place"]').value = data.data.birth_place;
+                            if (data.data.marital_status) {
+                                const maritalSelect = document.querySelector('select[name="marital_status"]');
+                                for (let i = 0; i < maritalSelect.options.length; i++) {
+                                    if (maritalSelect.options[i].value.toLowerCase() === data.data.marital_status.toLowerCase()) {
+                                        maritalSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (data.data.contact_number) document.querySelector('input[name="contact_number"]').value = data.data.contact_number;
+                            if (data.data.osca_id) document.querySelector('input[name="osca_id"]').value = data.data.osca_id;
+                            if (data.data.residence) document.querySelector('input[name="residence"]').value = data.data.residence;
+                            if (data.data.street) document.querySelector('input[name="street"]').value = data.data.street;
+                            if (data.data.email) document.querySelector('input[name="email"]').value = data.data.email;
+                            
+                            // Handle other fields as needed
+                        } else {
+                            ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ' + (data.message || 'Error processing document') + '</span>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error processing document. Please try again.</span>';
+                    });
+                });
+            }
+        });
     </script>
   </x-head>
 </x-sidebar>

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\OCRController;
 // OCR Processing Routes
 Route::post('/ocr/process', [OCRController::class, 'process']);
 Route::post('/vision/process-form', [App\Http\Controllers\Api\GoogleVisionController::class, 'processForm']);
+Route::get('/vision/check-status/{jobId}', [App\Http\Controllers\Api\GoogleVisionController::class, 'checkStatus']);
 
 // Public routes
 Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);

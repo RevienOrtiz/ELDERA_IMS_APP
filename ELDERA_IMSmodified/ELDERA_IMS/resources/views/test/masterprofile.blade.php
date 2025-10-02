@@ -1979,9 +1979,18 @@
                     const formData = new FormData();
                     formData.append('document', file);
                     
-                    ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing document, please wait...</span>';
+                    // Check if file is PDF
+                    const isPdf = file.type === 'application/pdf';
                     
-                    fetch('/api/ocr/process-form', {
+                    // Update status message based on file type
+                    if (isPdf) {
+                        ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing PDF document, this may take longer...</span>';
+                    } else {
+                        ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing document, please wait...</span>';
+                    }
+                    
+                    // Send to API endpoint
+                    fetch('/api/vision/process-form', {
                         method: 'POST',
                         body: formData,
                         headers: {
@@ -1991,9 +2000,51 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
-                            
-                            // Fill form fields with extracted data
+                            // Check if processing is asynchronous (for PDF files)
+                            if (data.status === 'processing') {
+                                // Set up polling for async processing
+                                ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing in progress, please wait...</span>';
+                                
+                                // Poll for results every 3 seconds
+                                const pollInterval = setInterval(() => {
+                                    fetch(`/api/vision/check-status/${data.job_id}`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(statusData => {
+                                        if (statusData.status === 'completed') {
+                                            clearInterval(pollInterval);
+                                            ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
+                                            
+                                            // Fill form fields with extracted data from completed job
+                                            fillFormFields(statusData.data);
+                                        } else if (statusData.status === 'failed') {
+                                            clearInterval(pollInterval);
+                                            ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Processing failed: ' + statusData.message + '</span>';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        clearInterval(pollInterval);
+                                        console.error('Error checking status:', error);
+                                        ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error checking status</span>';
+                                    });
+                                }, 3000);
+                            } else {
+                                ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
+                                
+                                // Fill form fields with extracted data
+                                fillFormFields(data.data);
+                            }
+                        } else {
+                            ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Processing failed: ' + data.message + '</span>';
+                        }
+                    })
+                    
+                    // Helper function to fill form fields
+                    function fillFormFields(data) {
                             if (data.data.last_name) document.querySelector('input[name="last_name"]').value = data.data.last_name;
                             if (data.data.first_name) document.querySelector('input[name="first_name"]').value = data.data.first_name;
                             if (data.data.middle_name) document.querySelector('input[name="middle_name"]').value = data.data.middle_name;

@@ -279,6 +279,7 @@
                             <th>AGE</th>
                             <th>GENDER</th>
                             <th>BARANGAY</th>
+                            <th class="sortable-header" data-sort="status">STATUS</th>
                             <th>PENSION STATUS</th>
                             <th>APP ACCOUNT</th>
                             <th>ACTION</th>
@@ -293,6 +294,11 @@
                             <td>{{ \Carbon\Carbon::parse($senior->date_of_birth)->age }}</td>
                             <td>{{ $senior->sex }}</td>
                             <td>{{ $senior->barangay }}</td>
+                            <td>
+                                <span class="status-badge status-{{ $senior->status }}">
+                                    {{ ucfirst($senior->status) }}
+                                </span>
+                            </td>
                             <td>
                                 <span class="status-badge status-{{ $senior->has_pension ? 'with-pension' : 'without-pension' }}">
                                     {{ $senior->has_pension ? 'With Pension' : 'Without Pension' }}
@@ -1897,7 +1903,7 @@
                     let sortOptions = [];
                     
                     if (currentTab === 'all-seniors') {
-                        // All Seniors table: NO, OSCA ID, FULL NAME, AGE, GENDER, BARANGAY, PENSION STATUS, ACTION
+                        // All Seniors table: NO, OSCA ID, FULL NAME, AGE, GENDER, BARANGAY, STATUS, PENSION STATUS, APP ACCOUNT, ACTION
                         sortOptions = [
                             { field: 'name', order: 'asc', label: 'Name (A-Z)', icon: 'fas fa-sort-alpha-down' },
                             { field: 'name', order: 'desc', label: 'Name (Z-A)', icon: 'fas fa-sort-alpha-up' },
@@ -1905,6 +1911,8 @@
                             { field: 'age', order: 'desc', label: 'Age (Oldest First)', icon: 'fas fa-sort-numeric-up' },
                             { field: 'barangay', order: 'asc', label: 'Barangay (A-Z)', icon: 'fas fa-sort-alpha-down' },
                             { field: 'barangay', order: 'desc', label: 'Barangay (Z-A)', icon: 'fas fa-sort-alpha-up' },
+                            { field: 'status', order: 'asc', label: 'Status (A-Z)', icon: 'fas fa-sort-alpha-down' },
+                            { field: 'status', order: 'desc', label: 'Status (Z-A)', icon: 'fas fa-sort-alpha-up' },
                             { field: 'pension', order: 'asc', label: 'Pension Status (A-Z)', icon: 'fas fa-sort-alpha-down' },
                             { field: 'pension', order: 'desc', label: 'Pension Status (Z-A)', icon: 'fas fa-sort-alpha-up' }
                         ];
@@ -2237,10 +2245,11 @@
                         
                         // Specific filters based on table structure
                         if (currentTab === 'all-seniors') {
-                            // All Seniors table: NO, OSCA ID, NAME, AGE, GENDER, BARANGAY, PENSION STATUS, ACTION
+                            // All Seniors table: OSCA ID, FULL NAME, AGE, GENDER, BARANGAY, STATUS, PENSION STATUS, APP ACCOUNT, ACTION
                             const gender = cells[4]?.textContent.trim() || '';
                             const barangay = cells[5]?.textContent.trim() || '';
-                            const pensionStatus = cells[6]?.textContent.trim() || '';
+                            const status = cells[6]?.textContent.trim() || '';
+                            const pensionStatus = cells[7]?.textContent.trim() || '';
                             
                             // Gender filter - normalize values for comparison
                             if (activeFilters.gender.length > 0) {
@@ -2261,6 +2270,16 @@
                                 if (!hasBarangayMatch) return false;
                             }
                             
+                            // Status filter
+                            if (activeFilters.status.length > 0) {
+                                const normalizedStatus = status.toLowerCase().replace(/\s+/g, '_');
+                                const hasStatusMatch = activeFilters.status.some(filterStatus => {
+                                    const normalizedFilter = filterStatus.toLowerCase().replace(/\s+/g, '_');
+                                    return normalizedStatus === normalizedFilter;
+                                });
+                                if (!hasStatusMatch) return false;
+                            }
+
                             // Pension filter - normalize values for comparison
                             if (activeFilters.pension.length > 0) {
                                 const normalizedPension = pensionStatus.toLowerCase();
@@ -2441,7 +2460,7 @@
                             let aValue, bValue;
                             
                             if (currentTab === 'all-seniors') {
-                                // All Seniors table: NO, OSCA ID, FULL NAME, AGE, GENDER, BARANGAY, PENSION STATUS, ACTION
+                                // All Seniors table: NO, OSCA ID, FULL NAME, AGE, GENDER, BARANGAY, STATUS, PENSION STATUS, APP ACCOUNT, ACTION
                             switch (currentSort.field) {
                                 case 'name':
                                         aValue = a.cells[2]?.textContent.trim() || '';
@@ -2455,9 +2474,13 @@
                                         aValue = a.cells[5]?.textContent.trim() || '';
                                         bValue = b.cells[5]?.textContent.trim() || '';
                                         break;
-                                    case 'pension':
+                                case 'status':
                                         aValue = a.cells[6]?.textContent.trim() || '';
                                         bValue = b.cells[6]?.textContent.trim() || '';
+                                    break;
+                                    case 'pension':
+                                        aValue = a.cells[7]?.textContent.trim() || '';
+                                        bValue = b.cells[7]?.textContent.trim() || '';
                                     break;
                                 default:
                                     return 0;
@@ -2599,7 +2622,8 @@
                                 if (shouldShow && currentTab === 'all-seniors') {
                                     const gender = cells[4]?.textContent.trim() || '';
                                     const barangay = cells[5]?.textContent.trim() || '';
-                                    const pensionStatus = cells[6]?.textContent.trim() || '';
+                                    const status = cells[6]?.textContent.trim() || '';
+                                    const pensionStatus = cells[7]?.textContent.trim() || '';
                                     
                                     // Apply filters
                                     if (activeFilters.gender.length > 0) {
@@ -2619,6 +2643,16 @@
                                         if (!hasBarangayMatch) shouldShow = false;
                                     }
                                     
+                                    // Status filter
+                                    if (shouldShow && activeFilters.status.length > 0) {
+                                        const normalizedStatus = status.toLowerCase().replace(/\s+/g, '_');
+                                        const hasStatusMatch = activeFilters.status.some(filterStatus => {
+                                            const normalizedFilter = filterStatus.toLowerCase().replace(/\s+/g, '_');
+                                            return normalizedStatus === normalizedFilter;
+                                        });
+                                        if (!hasStatusMatch) shouldShow = false;
+                                    }
+
                                     if (shouldShow && activeFilters.pension.length > 0) {
                                         const normalizedPension = pensionStatus.toLowerCase();
                                         const hasPensionMatch = activeFilters.pension.some(filterPension => 

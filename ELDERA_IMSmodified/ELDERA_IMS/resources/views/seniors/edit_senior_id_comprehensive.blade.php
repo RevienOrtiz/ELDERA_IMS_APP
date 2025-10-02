@@ -72,7 +72,6 @@
                                             <option value="pending" {{ old('status', $application->status) == 'pending' ? 'selected' : '' }}>Pending</option>
                                             <option value="received" {{ old('status', $application->status) == 'received' ? 'selected' : '' }}>Received</option>
                                             <option value="approved" {{ old('status', $application->status) == 'approved' ? 'selected' : '' }}>Approved</option>
-                                            <option value="rejected" {{ old('status', $application->status) == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                         </select>
                                     </div>
                                 </div>

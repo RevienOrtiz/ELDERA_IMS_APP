@@ -1,39 +1,27 @@
 <!-- Senior ID Applicants Table -->
-<div class="table-container" id="id-applicants-table" style="display: block !important;">
-    <table class="seniors-table">
+<div class="table-container" id="id-applicants-table" style="display: none;">
+    <table class="records-table">
         <thead>
             <tr>
-                <th>OSCA ID</th>
-                <th>Name</th>
-                <th>Age</th>
+                <th>NO.</th>
+                <th>OSCA ID NO.</th>
+                <th>FULL NAME</th>
+                <th>AGE</th>
                 <th>Gender</th>
-                <th>Barangay</th>
-                <th>Date Applied</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>BARANGAY</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
             </tr>
         </thead>
         <tbody>
             @forelse($idApplications as $index => $application)
             <tr>
+                <td>{{ $index + 1 }}</td>
                 <td>{{ $application->senior ? $application->senior->osca_id : 'N/A' }}</td>
-                <td>
-                    @if($application->senior)
-                        {{ $application->senior->full_name }}
-                    @else
-                        <span class="text-muted">No Senior Linked</span>
-                    @endif
-                </td>
-                <td>
-                    @if($application->senior && $application->senior->date_of_birth)
-                        {{ \Carbon\Carbon::parse($application->senior->date_of_birth)->age }} years
-                    @else
-                        N/A
-                    @endif
-                </td>
+                <td>{{ $application->senior ? $application->senior->full_name : 'N/A' }}</td>
+                <td>{{ $application->senior && $application->senior->date_of_birth ? \Carbon\Carbon::parse($application->senior->date_of_birth)->age : 'N/A' }}</td>
                 <td>{{ $application->senior ? ucfirst($application->senior->sex) : 'N/A' }}</td>
                 <td>{{ $application->senior ? ucfirst($application->senior->barangay) : 'N/A' }}</td>
-                <td>{{ $application->submitted_at ? $application->submitted_at->format('Y-m-d') : 'N/A' }}</td>
                 <td>
                     <span class="status-badge status-{{ strtolower($application->status) }}">
                         {{ ucfirst(str_replace('_', ' ', $application->status)) }}
@@ -41,13 +29,13 @@
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <a href="{{ route('seniors.id-application.view', $application->id) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('seniors.id-application.view', $application->id) }}" class="btn btn-info">
                             <i class="fas fa-eye"></i> View
                         </a>
-                        <a href="{{ route('seniors.id-application.edit', $application->id) }}" class="btn btn-sm btn-warning">
+                        <a href="{{ route('seniors.id-application.edit', $application->id) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <button class="btn btn-sm btn-danger" onclick="showDeleteModal('{{ $application->id }}', 'Application {{ $application->id }}')">
+                        <button class="btn btn-danger" onclick="showDeleteModal('{{ $application->id }}', '{{ $application->senior ? $application->senior->full_name : 'N/A' }}', 'id')">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -55,7 +43,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="text-center text-muted py-4">No ID applications found.</td>
+                <td colspan="8" class="text-center">No ID applications found</td>
             </tr>
             @endforelse
         </tbody>

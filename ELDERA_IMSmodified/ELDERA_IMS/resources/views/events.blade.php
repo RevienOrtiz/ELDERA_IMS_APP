@@ -1472,6 +1472,8 @@
                 renderDayView();
             }
             updateCalendarTitle();
+            // Keep the month/year dropdowns aligned with the displayed date
+            syncDropdownsWithCurrentDate();
         }
 
         function renderMonthView() {
@@ -1585,6 +1587,34 @@
             const yearSelector = document.getElementById('yearSelector');
             currentDate.setFullYear(parseInt(yearSelector.value));
             renderCalendar();
+        }
+
+        // Ensure month/year selectors reflect the currentDate
+        function syncDropdownsWithCurrentDate() {
+            const monthSelector = document.getElementById('monthSelector');
+            const yearSelector = document.getElementById('yearSelector');
+            if (!monthSelector || !yearSelector) return;
+
+            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear();
+
+            // If the current year isn't present, append it
+            let yearExists = false;
+            for (let i = 0; i < yearSelector.options.length; i++) {
+                if (parseInt(yearSelector.options[i].value) === year) {
+                    yearExists = true;
+                    break;
+                }
+            }
+            if (!yearExists) {
+                const opt = document.createElement('option');
+                opt.value = String(year);
+                opt.textContent = String(year);
+                yearSelector.appendChild(opt);
+            }
+
+            monthSelector.value = String(month);
+            yearSelector.value = String(year);
         }
 
         function setView(view) {

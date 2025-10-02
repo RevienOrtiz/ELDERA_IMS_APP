@@ -1301,7 +1301,6 @@
                 });
             });
         });
-        });
 
         function loadAllSeniors() {
             // Try to load from cache first

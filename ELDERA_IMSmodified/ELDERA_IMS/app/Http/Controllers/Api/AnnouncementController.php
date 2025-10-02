@@ -14,7 +14,9 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
-        $announcements = Announcement::orderBy('created_at', 'desc')->get();
+        $announcements = Announcement::where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return response()->json([
             'success' => true,

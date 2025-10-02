@@ -19,7 +19,7 @@
             <!-- Sub-tabs for Benefits Applicants -->
             <div class="sub-tab-navigation" id="benefits-sub-tabs" style="display: none;">
                 <button class="sub-tab-btn active" onclick="showSubTab('existing-senior')">
-                    <i class="fas fa-user-check"></i> Existing Senior Benefits
+                    <i class="fas fa-user-check"></i> ONCBP
                 </button>
                 <button class="sub-tab-btn" onclick="showSubTab('pension')">
                     <i class="fas fa-money-check-alt"></i> Social Pension
@@ -1520,7 +1520,7 @@
                     } else if (tabName === 'id-applicants') {
                         document.getElementById('id-applicants-table').style.display = 'block';
                         document.querySelector('[onclick="showTab(\'id-applicants\')"]').classList.add('active');
-                        updateAddButton('Add ID Application', "{{ route('form_seniorID') }}");
+                        updateAddButton('Add Application', "{{ route('form_seniorID') }}");
                     }
                     
                     // Initialize sort options for the new tab
@@ -1545,11 +1545,11 @@
                     if (subTabName === 'existing-senior') {
                         document.getElementById('existing-senior-table').style.display = 'block';
                         document.querySelector('[onclick="showSubTab(\'existing-senior\')"]').classList.add('active');
-                        updateAddButton('Add Benefit Application', "{{ route('form_existing_senior') }}");
+                        updateAddButton('Add Application', "{{ route('form_existing_senior') }}");
                     } else if (subTabName === 'pension') {
                         document.getElementById('pension-table').style.display = 'block';
                         document.querySelector('[onclick="showSubTab(\'pension\')"]').classList.add('active');
-                        updateAddButton('Add Pension Application', "{{ route('form_pension') }}");
+                        updateAddButton('Add Application', "{{ route('form_pension') }}");
                     }
                     
                     // Initialize sort options for the new sub-tab

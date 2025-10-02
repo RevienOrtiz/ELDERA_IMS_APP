@@ -231,8 +231,11 @@
       {{-- <li class="{{ request()->routeIs('add_new_senior') ? 'active' : '' }}">
         <a href="{{ route('add_new_senior') }}"><i class="fas fa-user-plus"></i> Add New Senior 2</a>
       </li> --}}
+      <li class="{{ request()->routeIs(['seniors', 'view_senior', 'edit_senior', 'seniors.benefits', 'seniors.pension', 'seniors.id-applications']) ? 'active' : '' }}">
+        <a href="{{ route('seniors') }}"><i class="fas fa-users"></i> Senior Citizen</a>
+      </li>
 
-      <li id="applicationFormsMenu" class="{{ request()->routeIs(['form_existing_senior', 'form_pension', 'form_seniorID', 'masterprofile', 'masterprofile.show']) ? 'active' : '' }}">
+      <li id="applicationFormsMenu" class="{{ request()->routeIs(['form_existing_senior', 'form_pension', 'form_seniorID']) ? 'active' : '' }}">
         <div class="submenu-toggle" onclick="toggleSubmenu(this)">
           <div style="display: flex; align-items: center; gap: 12px; ">
             <i class="fas fa-clipboard"></i> Application Forms
@@ -241,7 +244,7 @@
         </div>
         <ul class="submenu" onclick="event.stopPropagation()">
           <li class="{{ request()->routeIs('form_existing_senior') ? 'active' : '' }}">
-            <a href="{{ route('form_existing_senior') }}"><i class="fas fa-user-check"></i> Add Existing Senior</a>
+            <a href="{{ route('form_existing_senior') }}"><i class="fas fa-user-check"></i> ONCBP</a>
           </li>
           <li class="{{ request()->routeIs('form_pension') ? 'active' : '' }}">
             <a href="{{ route('form_pension') }}"><i class="fas fa-hand-holding-usd"></i> Social Pension</a>
@@ -252,9 +255,7 @@
         </ul>
       </li>
 
-      <li class="{{ request()->routeIs(['seniors', 'view_senior', 'edit_senior', 'seniors.benefits', 'seniors.pension', 'seniors.id-applications']) ? 'active' : '' }}">
-        <a href="{{ route('seniors') }}"><i class="fas fa-users"></i> Senior Citizen</a>
-      </li>
+      
       <li class="{{ request()->routeIs('events') ? 'active' : '' }}">
         <a href="{{ route('events') }}"><i class="fas fa-calendar-alt"></i> Events</a>
       </li>
@@ -297,7 +298,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
       const currentRoute = '{{ request()->route()->getName() }}';
-      const applicationFormRoutes = ['form_existing_senior', 'form_pension', 'form_seniorID', 'masterprofile', 'masterprofile.show'];
+      const applicationFormRoutes = ['form_existing_senior', 'form_pension', 'form_seniorID'];
 
       // Handle Application Forms submenu
       if (applicationFormRoutes.includes(currentRoute)) {

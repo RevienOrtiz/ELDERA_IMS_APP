@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AppUser extends Authenticatable
 {
@@ -27,4 +27,12 @@ class AppUser extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * Link AppUser to Senior via shared OSCA ID.
+     */
+    public function senior(): HasOne
+    {
+        return $this->hasOne(Senior::class, 'osca_id', 'osca_id');
+    }
 }

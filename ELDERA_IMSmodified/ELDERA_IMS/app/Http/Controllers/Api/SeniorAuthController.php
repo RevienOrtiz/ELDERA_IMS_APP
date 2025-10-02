@@ -234,6 +234,41 @@ class SeniorAuthController extends Controller
         
         // Check if the user is an AppUser
         if ($user instanceof AppUser) {
+            // Resolve Senior profile using shared OSCA ID
+            $senior = Senior::where('osca_id', $user->osca_id)->first();
+
+            if ($senior) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $senior->id,
+                        'osca_id' => $senior->osca_id,
+                        'name' => $senior->first_name . ' ' . $senior->last_name,
+                        'first_name' => $senior->first_name,
+                        'last_name' => $senior->last_name,
+                        'middle_name' => $senior->middle_name,
+                        'name_extension' => $senior->name_extension,
+                        'date_of_birth' => $senior->date_of_birth,
+                        'age' => $senior->age,
+                        'sex' => $senior->sex,
+                        'contact_number' => $senior->contact_number,
+                        'email' => $user->email,
+                        'address' => [
+                            'region' => $senior->region,
+                            'province' => $senior->province,
+                            'city' => $senior->city,
+                            'barangay' => $senior->barangay,
+                            'residence' => $senior->residence,
+                            'street' => $senior->street,
+                        ],
+                        'has_pension' => $senior->has_pension,
+                        'status' => $senior->status,
+                        'photo_path' => $senior->photo_path,
+                    ]
+                ]);
+            }
+
+            // Fallback to minimal AppUser data if no senior record is found
             return response()->json([
                 'success' => true,
                 'data' => [

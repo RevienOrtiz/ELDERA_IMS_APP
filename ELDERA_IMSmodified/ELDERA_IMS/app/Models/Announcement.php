@@ -17,11 +17,13 @@ class Announcement extends Model
         'category',
         'department',
         'hasListen',
+        'is_active',
         'postedDate',
     ];
 
     protected $casts = [
         'hasListen' => 'boolean',
+        'is_active' => 'boolean',
         'postedDate' => 'string',
     ];
 }

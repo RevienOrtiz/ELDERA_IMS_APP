@@ -121,6 +121,20 @@
                                         </div>
                                     </div>
                         </div>
+                                
+                                <!-- Status Filter (Global for All Seniors) -->
+                                <div class="filter-btn-container" id="status-filter-container-global" style="display: none;">
+                                    <button class="filter-btn" id="status-filter-btn-global">
+                                        <i class="fas fa-info-circle"></i> Status <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="filter-dropdown" id="status-dropdown-global">
+                                        <div class="filter-dropdown-content">
+                                            <div class="filter-options" id="status-options-global">
+                                                <!-- Global Status options will be populated dynamically -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                     </div>
                 </div>
 
@@ -1605,6 +1619,8 @@
                     
                     // Hide all dynamic filters first
                     document.getElementById('status-filter-container').style.display = 'none';
+                    const globalStatusContainer = document.getElementById('status-filter-container-global');
+                    if (globalStatusContainer) globalStatusContainer.style.display = 'none';
                     document.getElementById('milestone-filter-container').style.display = 'none';
                     document.getElementById('income-filter-container').style.display = 'none';
                     
@@ -1612,6 +1628,11 @@
                     const pensionContainer = document.getElementById('pension-filter-container');
                     if (currentTab === 'all-seniors') {
                         pensionContainer.style.display = 'inline-block';
+                        // Show global Status filter for All Seniors
+                        if (globalStatusContainer) {
+                            globalStatusContainer.style.display = 'inline-block';
+                            populateGlobalStatusOptions();
+                        }
                     } else {
                         pensionContainer.style.display = 'none';
                     }
@@ -1620,25 +1641,47 @@
                     if (currentTab === 'benefits-applicants') {
                         tableSpecificSection.style.display = 'block';
                         if (currentSubTab === 'existing-senior') {
-                            // Existing Senior Benefits: Show Status and Milestone Age filters
+                            // Existing Senior Benefits: Show Status and Milestone Age filters (table-specific)
                             document.getElementById('status-filter-container').style.display = 'inline-block';
                             document.getElementById('milestone-filter-container').style.display = 'inline-block';
                             populateStatusOptions('benefits');
                         } else {
-                            // Social Pension: Show Status and Monthly Income filters
+                            // Social Pension: Show Status and Monthly Income filters (table-specific)
                             document.getElementById('status-filter-container').style.display = 'inline-block';
                             document.getElementById('income-filter-container').style.display = 'inline-block';
                             populateStatusOptions('pension');
                         }
                     } else if (currentTab === 'id-applicants') {
                         tableSpecificSection.style.display = 'block';
-                        // Senior ID Applicants: Show Status filter only
+                        // Senior ID Applicants: Show Status filter only (table-specific)
                         document.getElementById('status-filter-container').style.display = 'inline-block';
                         populateStatusOptions('id');
                     } else {
                         // All Seniors table - hide table-specific section
                         tableSpecificSection.style.display = 'none';
                     }
+                }
+
+                // Populate Global Status options (Active/Deceased) for All Seniors
+                function populateGlobalStatusOptions() {
+                    const statusOptionsContainer = document.getElementById('status-options-global');
+                    if (!statusOptionsContainer) return;
+                    statusOptionsContainer.innerHTML = '';
+                    const statusOptions = [
+                        { value: 'Active', label: 'Active' },
+                        { value: 'Deceased', label: 'Deceased' }
+                    ];
+                    statusOptions.forEach(option => {
+                        const label = document.createElement('label');
+                        label.className = 'filter-option';
+                        label.innerHTML = `
+                            <input type="checkbox" value="${option.value}" data-filter="status">
+                            <span>${option.label}</span>
+                        `;
+                        statusOptionsContainer.appendChild(label);
+                    });
+                    // Attach listeners to new checkboxes
+                    attachFilterEventListeners();
                 }
                 
                 function populateStatusOptions(tableType) {
@@ -1827,6 +1870,8 @@
                             targetDropdown = document.getElementById('gender-dropdown');
                         } else if (buttonId === 'status-filter-btn') {
                             targetDropdown = document.getElementById('status-dropdown');
+                        } else if (buttonId === 'status-filter-btn-global') {
+                            targetDropdown = document.getElementById('status-dropdown-global');
                         } else if (buttonId === 'milestone-filter-btn') {
                             targetDropdown = document.getElementById('milestone-dropdown');
                         } else if (buttonId === 'income-filter-btn') {
@@ -2085,7 +2130,12 @@
                         } else if (filterType === 'gender') {
                             button = document.getElementById('gender-filter-btn');
                         } else if (filterType === 'status') {
-                            button = document.getElementById('status-filter-btn');
+                            // Use global Status button for All Seniors, else table-specific Status button
+                            if (currentTab === 'all-seniors') {
+                                button = document.getElementById('status-filter-btn-global');
+                            } else {
+                                button = document.getElementById('status-filter-btn');
+                            }
                         } else if (filterType === 'milestone') {
                             button = document.getElementById('milestone-filter-btn');
                         } else if (filterType === 'income') {

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "eldera-ocr",
+  "private_key_id": "919a237516b956b04e22e9b053de24575e415c04",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDMUGW0vql4ujNL\ndf9/gJ4ORYR5qG/SX/HNwRpdj9LIADbdQK2tKghrfDrM2q8Jzu1qHPmbJBtZWp4D\nZcQkIxpG+u+QIRTgQIj0VsX119VqxPQNf+XtGfB8S5CQbrdmDU7NSGmHgAy7M0uV\nZlUNB9mWGXtSkvrb86PSNLbJ3VmuLk0Co68MRS9NL+22Ln2d9cpW5IjsWJQjnnGu\nihpMBKpiCQMx1YWz6Gpg0ZD0IfJrUbKcuyAy/dRDokHjnbyUepQqQ++eQUmXywPb\nuy6Nyz0P5tk6uauCgpyaEcOufsUv/8gKl0QRFFTeTrcfYsXxMlpW0KYzhenPuRoz\npIAZsz/dAgMBAAECggEAKIyNPuO3MTttKj0TNewiEk2INvfvp3Y8wHviXm7Io8Jt\nIRiwz2T/8ksfxV/ibOUpV83D2R8/oUp7gUudc5mW4b70NCvon4AXXjzpgXryQ4Qu\nto4rZRTollaN7KhYlDOwb8v/C7IldLK/vbknSJSGAcTxZYg/qs8ONI4bN/GLFqcF\nN4MJLA2g4MYGGV5FnDWjjXZIq3XKc/vNw26VNpWGpZBdP6ebZ2OGBq5+cDGjQ1nM\n/elUp8kJS4I9sDAYzFcI7hY2/yvrSvCJRhpi9FpcYFWKezprSWJmLS4b7nLbg8SL\nMFBMAfbc3WDfjSDbjlk/6Pada0LnH2MF6GsAxTtiSQKBgQD3k7y9BW3wVilHD4GO\nyjhMi99+szrgD5FcdKyDqLTND/XlgTvwKy1Rx8dyWBdv+C7upHfF0LjXyeeh2QFZ\no28k7wDHRLGezMgYx57f9zoVxlgjbT5in6eriVHzr+Au2QtUjMX5tCGoSLTXD3tl\nniXULRM7SySu48jlV11XND1kGQKBgQDTQ9y91oFp6cbl9exOA9VZyuKX+8SKVQbG\nXXf1BSWcxXw8nW1w4toEsLTz65l3YjuImXkFFtlPEgxIQr+ZF9nndQbC8KwN6i+v\nl3SxdNcoe+4zkiHYFkkqQpBd2iSUJwmmTHXG9xnBnWe/EKiP6qOnHxYkUMCkMMTE\nabXVVhkSZQKBgQCDW2uEjuDp5403Gs8Ox9RfKMeIHehbAWeKuozdviFPu+wnvQ3k\nO8Rr46e6z2qACho8nB7AYiHwvDud79l7ie9qlTTAhX4IV3bDTwbIpg+3hek1wrya\n70KzDMTimqpDsP0F+zr/ZceF1i28/YXnQKWpkdDmYNQxxsHMjTIFFr6L4QKBgFOF\nL55pUA5EGprNB1esUktGVyCIqyGZDa2cRBE8sKrys/PutNZ9CH30MgWAbdJxpmGR\ncvOdHdoRo4Npx/9JG59Sd5LXvN1faOy9Lqf9LhZWMEx5CCI6ZUBswlAoLm/Xowv4\njFNVWvxdMyeo+Uq0E3C9bG588ju3AAM6W2V0vUK1AoGALXrnKNpfgKgOrZT4EjVJ\nRZjzsmIHMZTopG9/+Pt9MdsFqFbXlM/vbQyJOswBCY39TuBbE3r5LznONSndz8vW\nUgn4jmjVKXZNfXn0t9R7IdPp72ksrc+NDxJ9IxkRVHGguqVbeJfI8Wgosv0ERB6p\noGVwrie/o1iGb1cFcnucVZ8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "eldera-ocr-service-563@eldera-ocr.iam.gserviceaccount.com",
+  "client_id": "100284740268709080224",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/eldera-ocr-service-563%40eldera-ocr.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -30,9 +30,14 @@ class CacheHeaders
                 $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 300) . ' GMT');
             }
             // Dashboard and statistics - cache for 2 minutes
-            elseif (in_array($path, ['Dashboard', 'Seniors', 'Seniors/benefits', 'Seniors/pension', 'Seniors/id-applications'])) {
+            elseif (in_array($path, ['Dashboard'])) {
                 $response->headers->set('Cache-Control', 'public, max-age=120');
                 $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 120) . ' GMT');
+            }
+            // Seniors tables - shorter cache for faster updates
+            elseif (in_array($path, ['Seniors', 'Seniors/benefits', 'Seniors/pension', 'Seniors/id-applications'])) {
+                $response->headers->set('Cache-Control', 'public, max-age=30');
+                $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 30) . ' GMT');
             }
             // Forms and dynamic content - cache for 30 seconds
             elseif (str_contains($path, 'Form_') || str_contains($path, 'edit-') || str_contains($path, 'view-')) {

@@ -62,21 +62,19 @@ class DashboardService
         $stats = Application::selectRaw('
                 COUNT(*) as total,
                 SUM(CASE WHEN status = \'pending\' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN status = \'under_review\' THEN 1 ELSE 0 END) as under_review,
+                SUM(CASE WHEN status = \'received\' THEN 1 ELSE 0 END) as received,
                 SUM(CASE WHEN status = \'approved\' THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN status = \'rejected\' THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN status = \'completed\' THEN 1 ELSE 0 END) as completed
+                SUM(CASE WHEN status = \'rejected\' THEN 1 ELSE 0 END) as rejected
             ')
             ->first();
 
         return [
             'total' => $stats->total ?? 0,
             'pending' => $stats->pending ?? 0,
-            'under_review' => $stats->under_review ?? 0,
+            'received' => $stats->received ?? 0,
             'approved' => $stats->approved ?? 0,
             'rejected' => $stats->rejected ?? 0,
-            'completed' => $stats->completed ?? 0,
-            'completion_rate' => $stats->total > 0 ? round((($stats->approved + $stats->completed) / $stats->total) * 100, 2) : 0,
+            'completion_rate' => $stats->total > 0 ? round((($stats->approved) / $stats->total) * 100, 2) : 0,
         ];
     }
 
@@ -407,20 +405,18 @@ class DashboardService
             ->selectRaw('
                 COUNT(*) as total,
                 SUM(CASE WHEN status = \'pending\' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN status = \'under_review\' THEN 1 ELSE 0 END) as under_review,
+                SUM(CASE WHEN status = \'received\' THEN 1 ELSE 0 END) as received,
                 SUM(CASE WHEN status = \'approved\' THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN status = \'rejected\' THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN status = \'completed\' THEN 1 ELSE 0 END) as completed
+                SUM(CASE WHEN status = \'rejected\' THEN 1 ELSE 0 END) as rejected
             ')
             ->first();
 
         return [
             'total' => $stats->total ?? 0,
             'pending' => $stats->pending ?? 0,
-            'under_review' => $stats->under_review ?? 0,
+            'received' => $stats->received ?? 0,
             'approved' => $stats->approved ?? 0,
             'rejected' => $stats->rejected ?? 0,
-            'completed' => $stats->completed ?? 0,
         ];
     }
 

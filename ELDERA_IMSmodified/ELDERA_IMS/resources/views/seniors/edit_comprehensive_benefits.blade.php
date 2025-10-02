@@ -51,10 +51,10 @@
                                 <select name="status" class="form-select" required>
                                     <option value="">Select Status</option>
                                     <option value="pending" {{ old('status', $application->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="under_review" {{ old('status', $application->status) == 'under_review' ? 'selected' : '' }}>Under Review</option>
+                                    <option value="received" {{ old('status', $application->status) == 'received' ? 'selected' : '' }}>Received</option>
                                     <option value="approved" {{ old('status', $application->status) == 'approved' ? 'selected' : '' }}>Approved</option>
                                     <option value="rejected" {{ old('status', $application->status) == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                                    <option value="completed" {{ old('status', $application->status) == 'completed' ? 'selected' : '' }}>Completed</option>
+                                    
                                 </select>
                             </div>
                             </div>

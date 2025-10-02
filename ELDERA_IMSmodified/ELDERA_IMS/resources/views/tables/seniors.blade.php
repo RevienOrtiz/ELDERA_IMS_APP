@@ -1384,7 +1384,7 @@
                 color: #92400e !important;
             }
             
-            .status-badge.status-under_review {
+.status-badge.status-received {
                 background-color: #dbeafe !important;
                 color: #1e40af !important;
             }
@@ -1615,28 +1615,25 @@
                         // Benefits applications status options
                         statusOptions = [
                             { value: 'pending', label: 'Pending' },
-                            { value: 'under_review', label: 'Under Review' },
+                            { value: 'received', label: 'Received' },
                             { value: 'approved', label: 'Approved' },
-                            { value: 'rejected', label: 'Rejected' },
-                            { value: 'completed', label: 'Completed' }
+                            { value: 'rejected', label: 'Rejected' }
                         ];
                     } else if (tableType === 'pension') {
                         // Pension applications status options
                         statusOptions = [
                             { value: 'pending', label: 'Pending' },
-                            { value: 'under_review', label: 'Under Review' },
+                            { value: 'received', label: 'Received' },
                             { value: 'approved', label: 'Approved' },
-                            { value: 'rejected', label: 'Rejected' },
-                            { value: 'completed', label: 'Completed' }
+                            { value: 'rejected', label: 'Rejected' }
                         ];
                     } else if (tableType === 'id') {
                         // ID applications status options
                         statusOptions = [
                             { value: 'pending', label: 'Pending' },
-                            { value: 'under_review', label: 'Under Review' },
+                            { value: 'received', label: 'Received' },
                             { value: 'approved', label: 'Approved' },
-                            { value: 'rejected', label: 'Rejected' },
-                            { value: 'completed', label: 'Completed' }
+                            { value: 'rejected', label: 'Rejected' }
                         ];
                     }
                     

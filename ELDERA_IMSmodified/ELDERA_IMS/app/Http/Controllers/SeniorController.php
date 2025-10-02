@@ -565,7 +565,7 @@ class SeniorController extends Controller
             'civil_status' => 'required|string|in:Single,Married,Widowed,Separated,Others',
                 'contact_number' => 'required|string|max:20',
                 'monthly_income' => 'required|numeric|min:0',
-                'status' => 'required|string|in:pending,under_review,approved,rejected,completed',
+                'status' => 'required|string|in:pending,received,approved,rejected',
             // Pension-specific fields
             'permanent_income' => 'nullable|string',
             'income_amount' => 'nullable|string',
@@ -621,6 +621,9 @@ class SeniorController extends Controller
             $application->update([
                 'status' => $validatedData['status']
             ]);
+
+            // Clear relevant caches after updating ID application
+            $this->clearRelevantCaches();
 
             return redirect()->route('seniors')
                 ->with('success', 'Pension application updated successfully! Status: ' . ucfirst(str_replace('_', ' ', $validatedData['status'])));
@@ -825,7 +828,7 @@ class SeniorController extends Controller
                 'place_of_issuance' => 'required|string|max:255',
                 'date_of_issued' => 'required|date',
                 'date_of_received' => 'required|date',
-                'status' => 'required|string|in:pending,under_review,approved,rejected,completed',
+                'status' => 'required|string|in:pending,received,approved,rejected',
             ]);
 
             // Update the senior information - ID application specific fields
@@ -1114,7 +1117,7 @@ class SeniorController extends Controller
                 'utilization' => 'nullable|array',
                 'utilization_others' => 'nullable|string|max:255',
                 'certification' => 'nullable|array',
-                'status' => 'required|string|in:pending,under_review,approved,rejected,completed',
+                'status' => 'required|string|in:pending,received,approved,rejected',
                 'findings_concerns' => 'nullable|string',
                 'initial_assessment' => 'nullable|string|in:eligible,ineligible',
             ]);

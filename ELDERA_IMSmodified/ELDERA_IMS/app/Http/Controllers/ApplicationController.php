@@ -318,7 +318,7 @@ class ApplicationController extends Controller
     {
         return Application::where('senior_id', $seniorId)
             ->where('application_type', $applicationType)
-            ->whereIn('status', ['pending', 'under_review', 'approved'])
+            ->whereIn('status', ['pending', 'received', 'approved'])
             ->first();
     }
 }

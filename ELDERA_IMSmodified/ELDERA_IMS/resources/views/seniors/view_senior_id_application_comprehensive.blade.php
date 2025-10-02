@@ -357,7 +357,7 @@
         .status-pending { background-color: #ffc107; color: #000; }
         .status-approved { background-color: #28a745; color: #fff; }
         .status-rejected { background-color: #dc3545; color: #fff; }
-        .status-under_review { background-color: #17a2b8; color: #fff; }
+.status-received { background-color: #17a2b8; color: #fff; }
 
         .certification-box {
             background-color: #f8f9fa;

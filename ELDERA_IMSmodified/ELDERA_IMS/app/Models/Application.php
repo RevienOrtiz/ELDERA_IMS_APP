@@ -85,9 +85,9 @@ class Application extends Model
         return $query->where('status', 'pending');
     }
 
-    public function scopeUnderReview($query)
+    public function scopeReceived($query)
     {
-        return $query->where('status', 'under_review');
+        return $query->where('status', 'received');
     }
 
     public function scopeApproved($query)
@@ -100,10 +100,6 @@ class Application extends Model
         return $query->where('status', 'rejected');
     }
 
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
 
     // Business Logic Methods
     public function isPending(): bool
@@ -111,9 +107,9 @@ class Application extends Model
         return $this->status === 'pending';
     }
 
-    public function isUnderReview(): bool
+    public function isReceived(): bool
     {
-        return $this->status === 'under_review';
+        return $this->status === 'received';
     }
 
     public function isApproved(): bool
@@ -126,20 +122,16 @@ class Application extends Model
         return $this->status === 'rejected';
     }
 
-    public function isCompleted(): bool
-    {
-        return $this->status === 'completed';
-    }
 
     public function canBeReviewed(): bool
     {
-        return in_array($this->status, ['pending', 'under_review']);
+        return in_array($this->status, ['pending', 'received']);
     }
 
-    public function markAsUnderReview(User $reviewer): void
+    public function markAsReceived(User $reviewer): void
     {
         $this->update([
-            'status' => 'under_review',
+            'status' => 'received',
             'reviewed_by' => $reviewer->id,
             'reviewed_at' => now(),
         ]);
@@ -165,19 +157,14 @@ class Application extends Model
         ]);
     }
 
-    public function complete(): void
-    {
-        $this->update(['status' => 'completed']);
-    }
 
     public function getStatusBadgeClass(): string
     {
         return match($this->status) {
             'pending' => 'badge-warning',
-            'under_review' => 'badge-info',
+            'received' => 'badge-info',
             'approved' => 'badge-success',
             'rejected' => 'badge-danger',
-            'completed' => 'badge-primary',
             default => 'badge-secondary'
         };
     }
@@ -186,10 +173,9 @@ class Application extends Model
     {
         return match($this->status) {
             'pending' => 'Pending',
-            'under_review' => 'Under Review',
+            'received' => 'Received',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
-            'completed' => 'Completed',
             default => 'Unknown'
         };
     }

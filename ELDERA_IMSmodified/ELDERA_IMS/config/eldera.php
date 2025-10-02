@@ -29,10 +29,9 @@ return [
     'applications' => [
         'statuses' => [
             'pending' => 'Pending',
-            'under_review' => 'Under Review',
+            'received' => 'Received',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
-            'completed' => 'Completed',
         ],
         'types' => [
             'senior_id' => 'Senior ID Application',

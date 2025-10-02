@@ -132,7 +132,7 @@ class ApplicationController extends Controller
             'id' => $id,
             'type' => 'Senior ID',
             'submitted_at' => '2023-11-10 14:30:00',
-            'status' => 'Under Review',
+            'status' => 'Received',
             'notes' => 'Your application is being processed. Please wait for further updates.',
             'estimated_completion' => '2023-11-25',
         ];

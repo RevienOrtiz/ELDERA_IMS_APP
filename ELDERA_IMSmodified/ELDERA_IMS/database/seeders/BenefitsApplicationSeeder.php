@@ -26,7 +26,7 @@ class BenefitsApplicationSeeder extends Seeder
         }
 
         $milestoneAges = [80, 85, 90, 95, 100];
-        $statuses = ['pending', 'approved', 'rejected', 'under_review'];
+        $statuses = ['pending', 'approved', 'rejected', 'received'];
 
         foreach ($seniors as $index => $senior) {
             // Create main application

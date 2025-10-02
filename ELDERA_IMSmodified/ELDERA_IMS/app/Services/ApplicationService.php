@@ -232,19 +232,18 @@ class ApplicationService
     {
         $total = Application::count();
         $pending = Application::pending()->count();
-        $underReview = Application::underReview()->count();
+        $received = Application::received()->count();
         $approved = Application::approved()->count();
         $rejected = Application::rejected()->count();
-        $completed = Application::completed()->count();
+        
 
         return [
             'total' => $total,
             'pending' => $pending,
-            'under_review' => $underReview,
+            'received' => $received,
             'approved' => $approved,
             'rejected' => $rejected,
-            'completed' => $completed,
-            'completion_rate' => $total > 0 ? round((($approved + $completed) / $total) * 100, 2) : 0,
+            'completion_rate' => $total > 0 ? round((($approved) / $total) * 100, 2) : 0,
         ];
     }
 
@@ -261,10 +260,10 @@ class ApplicationService
     {
         return [
             'pending' => Application::pending()->count(),
-            'under_review' => Application::underReview()->count(),
+            'received' => Application::received()->count(),
             'approved' => Application::approved()->count(),
             'rejected' => Application::rejected()->count(),
-            'completed' => Application::completed()->count(),
+            
         ];
     }
 

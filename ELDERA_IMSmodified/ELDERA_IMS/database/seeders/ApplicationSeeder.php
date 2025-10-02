@@ -100,8 +100,8 @@ class ApplicationSeeder extends Seeder
 
     private function getRandomStatus(): string
     {
-        $statuses = ['pending', 'under_review', 'approved', 'rejected', 'completed'];
-        $weights = [30, 25, 20, 15, 10]; // More pending and under_review
+        $statuses = ['pending', 'received', 'approved', 'rejected'];
+        $weights = [35, 25, 25, 15]; // More pending and received
         
         $random = rand(1, 100);
         $cumulative = 0;

@@ -28,6 +28,39 @@
                     <strong>Note:</strong> Fields marked with <span class="required-field">*</span> are required and must be filled out.
                 </div>
                 
+                <!-- Google Vision OCR Panel -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="ocr-panel" style="background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; margin-bottom: 20px; border: 2px solid #e31575;">
+                            <h4 style="color: #e31575; margin-bottom: 15px; font-size: 18px; text-align: center;">
+                                <i class="fas fa-file-alt me-2"></i>Form Scanner - Google Vision OCR
+                            </h4>
+                            <p class="small text-muted mb-3">Upload a completed form to automatically fill the fields using Google Vision OCR.</p>
+                            
+                            <div class="mb-3">
+                                <label for="ocrFileUpload" class="form-label small">Upload Form Image</label>
+                                <input type="file" class="form-control form-control-sm" id="ocrFileUpload" accept="image/*">
+                            </div>
+                            
+                            <button type="button" id="processOcrBtn" class="btn btn-primary btn-sm w-100" style="background-color: #e31575; border-color: #e31575;">
+                                <i class="fas fa-magic me-2"></i>Scan & Auto-fill
+                            </button>
+                            
+                            <div id="ocrStatus" class="mt-3" style="display: none;">
+                                <div class="progress" style="height: 10px;">
+                                    <div id="ocrProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background-color: #e31575;"></div>
+                                </div>
+                                <p id="ocrStatusText" class="small text-muted mt-2 mb-0">Processing...</p>
+                            </div>
+                            
+                            <div id="ocrResults" class="mt-3" style="display: none;">
+                                <h6 class="mb-2">Extracted Information:</h6>
+                                <div class="small" id="ocrResultsList" style="max-height: 200px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <form method="POST" action="{{ route('seniors.store') }}" enctype="multipart/form-data">
                     @csrf
 
@@ -2176,6 +2209,164 @@
         }
         
         function submitForm() {
+            
+        // Google Vision OCR JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const ocrFileUpload = document.getElementById('ocrFileUpload');
+            const processOcrBtn = document.getElementById('processOcrBtn');
+            const ocrStatus = document.getElementById('ocrStatus');
+            const ocrProgressBar = document.getElementById('ocrProgressBar');
+            const ocrStatusText = document.getElementById('ocrStatusText');
+            const ocrResults = document.getElementById('ocrResults');
+            const ocrResultsList = document.getElementById('ocrResultsList');
+            
+            // Process OCR button click handler
+            processOcrBtn.addEventListener('click', function() {
+                const file = ocrFileUpload.files[0];
+                if (!file) {
+                    alert('Please select a file first');
+                    return;
+                }
+                
+                // Show processing status
+                ocrStatus.style.display = 'block';
+                ocrResults.style.display = 'none';
+                ocrProgressBar.style.width = '0%';
+                ocrStatusText.textContent = 'Processing...';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('form_image', file);
+                
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 5;
+                    if (progress > 90) {
+                        clearInterval(progressInterval);
+                    }
+                    ocrProgressBar.style.width = progress + '%';
+                }, 100);
+                
+                // Send to backend for processing
+                fetch('/api/vision/process-form', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(progressInterval);
+                    ocrProgressBar.style.width = '100%';
+                    
+                    if (data.success) {
+                        ocrStatusText.textContent = 'Processing complete!';
+                        
+                        // Display extracted data
+                        ocrResults.style.display = 'block';
+                        ocrResultsList.innerHTML = '';
+                        
+                        const formData = data.data;
+                        let resultHtml = '<div class="mb-3">';
+                        
+                        for (const [key, value] of Object.entries(formData)) {
+                            if (value) {
+                                const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                resultHtml += `<div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">${fieldName}:</span>
+                                        <span class="fw-bold">${value}</span>
+                                    </div>
+                                </div>`;
+                            }
+                        }
+                        
+                        resultHtml += `<button type="button" class="btn btn-success btn-sm w-100 mt-2" id="applyOcrDataBtn">
+                            <i class="fas fa-check me-2"></i>Apply to Form
+                        </button>`;
+                        resultHtml += '</div>';
+                        
+                        ocrResultsList.innerHTML = resultHtml;
+                        
+                        // Add event listener for apply button
+                        document.getElementById('applyOcrDataBtn').addEventListener('click', function() {
+                            applyExtractedData(formData);
+                        });
+                    } else {
+                        ocrStatusText.textContent = 'Error: ' + data.message;
+                    }
+                })
+                .catch(error => {
+                    clearInterval(progressInterval);
+                    ocrProgressBar.style.width = '100%';
+                    ocrStatusText.textContent = 'Error: ' + error.message;
+                });
+            });
+            
+            // Function to apply extracted data to form fields
+            function applyExtractedData(data) {
+                // Map data to form fields
+                if (data.last_name) document.querySelector('input[name="last_name"]').value = data.last_name;
+                if (data.first_name) document.querySelector('input[name="first_name"]').value = data.first_name;
+                if (data.middle_name) document.querySelector('input[name="middle_name"]').value = data.middle_name;
+                
+                // Handle birth date (may need formatting)
+                if (data.birth_date) {
+                    const birthDateInput = document.querySelector('input[name="birth_date"]');
+                    if (birthDateInput) {
+                        // Try to convert to YYYY-MM-DD format if needed
+                        let formattedDate = data.birth_date;
+                        
+                        // Check if it's in MM/DD/YYYY format
+                        const dateMatch = data.birth_date.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                        if (dateMatch) {
+                            formattedDate = `${dateMatch[3]}-${dateMatch[1].padStart(2, '0')}-${dateMatch[2].padStart(2, '0')}`;
+                        }
+                        
+                        birthDateInput.value = formattedDate;
+                    }
+                }
+                
+                // Handle address fields
+                if (data.address) {
+                    const addressInput = document.querySelector('input[name="address"], textarea[name="address"]');
+                    if (addressInput) addressInput.value = data.address;
+                }
+                
+                // Handle senior citizen ID
+                if (data.senior_citizen_id) {
+                    const idInput = document.querySelector('input[name="senior_citizen_id"]');
+                    if (idInput) idInput.value = data.senior_citizen_id;
+                }
+                
+                // Handle contact number
+                if (data.contact_number) {
+                    const contactInput = document.querySelector('input[name="contact_number"]');
+                    if (contactInput) contactInput.value = data.contact_number;
+                }
+                
+                // Handle marital status
+                if (data.marital_status) {
+                    const maritalStatusSelect = document.querySelector('select[name="marital_status"]');
+                    if (maritalStatusSelect) {
+                        // Find the option that matches (case-insensitive)
+                        const options = Array.from(maritalStatusSelect.options);
+                        const matchingOption = options.find(option => 
+                            option.text.toLowerCase() === data.marital_status.toLowerCase()
+                        );
+                        
+                        if (matchingOption) {
+                            maritalStatusSelect.value = matchingOption.value;
+                        }
+                    }
+                }
+                
+                // Show success message
+                alert('Form fields have been filled with the extracted data!');
+            }
+        });
             // This function is now replaced by showCertificationModal
             showCertificationModal();
         }

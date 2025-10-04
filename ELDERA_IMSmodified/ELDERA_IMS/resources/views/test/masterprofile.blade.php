@@ -71,9 +71,364 @@
                                         <input type="file" class="form-control form-control-sm" id="ocrFileUpload" name="ocr_document" accept=".jpg,.jpeg,.png,.pdf">
                                     </div>
                                     <div class="mb-3">
-                                        <button class="btn btn-primary btn-sm" style="width: 120px;" type="button" id="processOcrBtn">
+                                        <button class="btn btn-primary btn-sm" style="width: 120px;" type="button" id="processOcrBtn" onclick="handleOcrScan()">
                                             <i class="fas fa-magic me-1"></i> Scan
                                         </button>
+                                        
+                                        <script>
+                                            // Main OCR processing function
+                                            function processOcrDocument() {
+                                                console.log("processOcrDocument function called");
+                                                const ocrFileUpload = document.getElementById('ocrFileUpload');
+                                                const ocrStatus = document.getElementById('ocrStatus');
+                                                
+                                                if (!ocrFileUpload || !ocrFileUpload.files || !ocrFileUpload.files.length) {
+                                                    ocrStatus.innerHTML = '<span class="text-danger">Please select a document to scan</span>';
+                                                    return;
+                                                }
+                                                
+                                                const file = ocrFileUpload.files[0];
+                                                const formData = new FormData();
+                                                // Change field name to 'file' instead of 'form_image' based on 422 error
+                                                formData.append('file', file);
+                                                
+                                                // Update status message
+                                                ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing document, please wait...</span>';
+                                                
+                                                // Get CSRF token
+                                                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                                                console.log("File selected:", file.name, "Size:", file.size, "Type:", file.type);
+                                                
+                                                // Send to API endpoint - using the correct endpoint from the screenshots
+                                                fetch('/api/ocr/process', {
+                                                    method: 'POST',
+                                                    body: formData,
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': csrfToken || '',
+                                                        // Remove Content-Type header to let browser set it with boundary for multipart/form-data
+                                                    }
+                                                })
+                                                .then(response => {
+                                                    console.log("OCR Response received:", response.status);
+                                                    if (!response.ok) {
+                                                        throw new Error('Network response was not ok: ' + response.status);
+                                                    }
+                                                    return response.json();
+                                                })
+                                                .then(data => {
+                                                    console.log("OCR Data received:", data);
+                                                    if (data.success) {
+                                                        ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
+                                                        
+                                                        // Fill form fields with extracted data
+                                                        if (data.data) {
+                                                            fillFormFields(data);
+                                                        }
+                                                    } else {
+                                                        console.error("OCR Error:", data.message || "Unknown error");
+                                                        ocrStatus.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ${data.message || 'Error processing document'}</span>`;
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('OCR processing error:', error);
+                                                    ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error processing document: ' + error.message + '</span>';
+                                                });
+                                            }
+                                            
+                                            // Global function for OCR scanning
+                                            function handleOcrScan() {
+                                                console.log("OCR Scan button clicked via onclick");
+                                                processOcrDocument();
+                                            }
+                                            
+                                            // Direct event handler for scan button (backup)
+                                            document.getElementById('processOcrBtn').addEventListener('click', function() {
+                                                console.log("Scan button clicked directly");
+                                                processOcrDocument();
+                                            });
+                                            
+                                            // Function to fill form fields with OCR data using multiple fallback patterns
+                                            function fillFormFields(data) {
+                                                console.log("Filling form fields with OCR data:", data);
+                                                
+                                                // Get form fields
+                                                const lastNameField = document.querySelector('input[name="last_name"]');
+                                                const firstNameField = document.querySelector('input[name="first_name"]');
+                                                const middleNameField = document.querySelector('input[name="middle_name"]');
+                                                const oscaIdField = document.querySelector('input[name="osca_id"]');
+                                                const gsisSssField = document.querySelector('input[name="gsis_sss"]');
+                                                const tinField = document.querySelector('input[name="tin"]');
+                                                const philhealthField = document.querySelector('input[name="philhealth"]');
+                                                const scAssociationField = document.querySelector('input[name="sc_association"]');
+                                                const otherGovtIdField = document.querySelector('input[name="other_govt_id"]');
+                                                const dateOfBirthField = document.querySelector('input[name="date_of_birth"]');
+                                                const birthPlaceField = document.querySelector('input[name="birth_place"]');
+                                                const residenceField = document.querySelector('input[name="residence"]');
+                                                const streetField = document.querySelector('input[name="street"]');
+                                                const ethnicOriginField = document.querySelector('input[name="ethnic_origin"]');
+                                                const languageField = document.querySelector('input[name="language"]');
+                                                
+                                                // Extract data object
+                                                const ocrData = data.data || {};
+                                                
+                                                // First Name - try multiple patterns
+                                                const firstNamePatterns = [
+                                                    'first_name', 'firstname', 'first name', 'name_first', 'name first', 
+                                                    'given_name', 'givenname', 'given name', 'maiden_name', 'maiden name'
+                                                ];
+                                                
+                                                // Last Name - try multiple patterns
+                                                const lastNamePatterns = [
+                                                    'last_name', 'lastname', 'last name', 'name_last', 'name last',
+                                                    'surname', 'family_name', 'familyname', 'family name'
+                                                ];
+                                                
+                                                // Middle Name - try multiple patterns
+                                                const middleNamePatterns = [
+                                                    'middle_name', 'middlename', 'middle name', 'name_middle', 'name middle',
+                                                    'middle_initial', 'middleinitial', 'middle initial'
+                                                ];
+                                                
+                                                // OSCA ID - try multiple patterns
+                                                const oscaIdPatterns = [
+                                                    'osca_id', 'oscaid', 'osca id', 'osca_id_number', 'osca_id_no',
+                                                    'osca_number', 'oscanumber', 'osca number'
+                                                ];
+                                                
+                                                // GSIS/SSS - try multiple patterns
+                                                const gsisSssPatterns = [
+                                                    'gsis_sss', 'gsissss', 'gsis sss', 'gsis_sss_number', 'gsis_sss_no',
+                                                    'sss_number', 'sssnumber', 'sss number', 'gsis_number', 'gsisnumber'
+                                                ];
+                                                
+                                                // TIN - try multiple patterns
+                                                const tinPatterns = [
+                                                    'tin', 'tax_identification_number', 'tax identification number',
+                                                    'tin_no', 'tin no', 'tax_id', 'tax id'
+                                                ];
+                                                
+                                                // PhilHealth - try multiple patterns
+                                                const philhealthPatterns = [
+                                                    'philhealth', 'philhealth_number', 'philhealth number',
+                                                    'philhealth_no', 'philhealth no', 'philhealth_id'
+                                                ];
+                                                
+                                                // SC Association - try multiple patterns
+                                                const scAssociationPatterns = [
+                                                    'sc_association', 'scassociation', 'sc association',
+                                                    'senior_citizen_association_id', 'senior citizen association id'
+                                                ];
+                                                
+                                                // Other Govt ID - try multiple patterns
+                                                const otherGovtIdPatterns = [
+                                                    'other_govt_id', 'othergovtid', 'other govt id',
+                                                    'other_government_id', 'other government id', 'other_id'
+                                                ];
+                                                
+                                                // Date of Birth - try multiple patterns
+                                                const dateOfBirthPatterns = [
+                                                    'date_of_birth', 'dateofbirth', 'date of birth',
+                                                    'birth_date', 'birthdate', 'birth date', 'dob'
+                                                ];
+                                                
+                                                // Birth Place - try multiple patterns
+                                                const birthPlacePatterns = [
+                                                    'birth_place', 'birthplace', 'birth place',
+                                                    'place_of_birth', 'placeofbirth', 'place of birth'
+                                                ];
+                                                
+                                                // Residence - try multiple patterns
+                                                const residencePatterns = [
+                                                    'residence', 'house_no', 'house no', 'zone', 'purok', 'sitio'
+                                                ];
+                                                
+                                                // Street - try multiple patterns
+                                                const streetPatterns = [
+                                                    'street', 'st', 'street_name', 'streetname', 'street name'
+                                                ];
+                                                
+                                                // Ethnic Origin - try multiple patterns
+                                                const ethnicOriginPatterns = [
+                                                    'ethnic_origin', 'ethnicorigin', 'ethnic origin',
+                                                    'ethnicity', 'ethnic_group', 'ethnic group', 'tribe'
+                                                ];
+                                                
+                                                // Language - try multiple patterns
+                                                const languagePatterns = [
+                                                    'language', 'language_spoken', 'languagespoken', 'language spoken',
+                                                    'dialect', 'mother_tongue', 'mothertongue', 'mother tongue'
+                                                ];
+                                                
+                                                // Function to find value using multiple patterns
+                                                function findValueByPatterns(data, patterns) {
+                                                    // First try exact matches in the data object
+                                                    for (const pattern of patterns) {
+                                                        if (data[pattern] !== undefined && data[pattern] !== null && data[pattern] !== '') {
+                                                            console.log(`Found ${pattern} with value: ${data[pattern]}`);
+                                                            return data[pattern];
+                                                        }
+                                                    }
+                                                    
+                                                    // If no exact match, try case-insensitive search in all properties
+                                                    for (const key in data) {
+                                                        const keyLower = key.toLowerCase();
+                                                        for (const pattern of patterns) {
+                                                            if (keyLower.includes(pattern.toLowerCase())) {
+                                                                console.log(`Found similar key ${key} matching pattern ${pattern} with value: ${data[key]}`);
+                                                                return data[key];
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    // If still not found, check if there's a nested 'data' object
+                                                    if (data.data && typeof data.data === 'object') {
+                                                        return findValueByPatterns(data.data, patterns);
+                                                    }
+                                                    
+                                                    return null;
+                                                }
+                                                
+                                                // Fill First Name
+                                                const firstName = findValueByPatterns(ocrData, firstNamePatterns);
+                                                if (firstName && firstNameField) {
+                                                    firstNameField.value = firstName;
+                                                    console.log("Set First Name field to:", firstName);
+                                                }
+                                                
+                                                // Fill Last Name
+                                                const lastName = findValueByPatterns(ocrData, lastNamePatterns);
+                                                if (lastName && lastNameField) {
+                                                    lastNameField.value = lastName;
+                                                    console.log("Set Last Name field to:", lastName);
+                                                }
+                                                
+                                                // Fill Middle Name
+                                                const middleName = findValueByPatterns(ocrData, middleNamePatterns);
+                                                if (middleName && middleNameField) {
+                                                    middleNameField.value = middleName;
+                                                    console.log("Set Middle Name field to:", middleName);
+                                                }
+                                                
+                                                // Fill OSCA ID
+                                                const oscaId = findValueByPatterns(ocrData, oscaIdPatterns);
+                                                if (oscaId && oscaIdField) {
+                                                    oscaIdField.value = oscaId;
+                                                    console.log("Set OSCA ID field to:", oscaId);
+                                                }
+                                                
+                                                // Fill GSIS/SSS
+                                                const gsisSss = findValueByPatterns(ocrData, gsisSssPatterns);
+                                                if (gsisSss && gsisSssField) {
+                                                    gsisSssField.value = gsisSss;
+                                                    console.log("Set GSIS/SSS field to:", gsisSss);
+                                                }
+                                                
+                                                // Fill TIN
+                                                const tin = findValueByPatterns(ocrData, tinPatterns);
+                                                if (tin && tinField) {
+                                                    tinField.value = tin;
+                                                    console.log("Set TIN field to:", tin);
+                                                }
+                                                
+                                                // Fill PhilHealth
+                                                const philhealth = findValueByPatterns(ocrData, philhealthPatterns);
+                                                if (philhealth && philhealthField) {
+                                                    philhealthField.value = philhealth;
+                                                    console.log("Set PhilHealth field to:", philhealth);
+                                                }
+                                                
+                                                // Fill SC Association
+                                                const scAssociation = findValueByPatterns(ocrData, scAssociationPatterns);
+                                                if (scAssociation && scAssociationField) {
+                                                    scAssociationField.value = scAssociation;
+                                                    console.log("Set SC Association field to:", scAssociation);
+                                                }
+                                                
+                                                // Fill Other Govt ID
+                                                const otherGovtId = findValueByPatterns(ocrData, otherGovtIdPatterns);
+                                                if (otherGovtId && otherGovtIdField) {
+                                                    otherGovtIdField.value = otherGovtId;
+                                                    console.log("Set Other Govt ID field to:", otherGovtId);
+                                                }
+                                                
+                                                // Fill Date of Birth
+                                                const dateOfBirth = findValueByPatterns(ocrData, dateOfBirthPatterns);
+                                                if (dateOfBirth && dateOfBirthField) {
+                                                    // Try to convert to YYYY-MM-DD format if it's not already
+                                                    try {
+                                                        // Check if it's already in YYYY-MM-DD format
+                                                        if (/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+                                                            dateOfBirthField.value = dateOfBirth;
+                                                        } else {
+                                                            // Try to parse various date formats
+                                                            const dateParts = dateOfBirth.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+                                                            if (dateParts) {
+                                                                let day = dateParts[1].padStart(2, '0');
+                                                                let month = dateParts[2].padStart(2, '0');
+                                                                let year = dateParts[3];
+                                                                
+                                                                // Handle 2-digit years
+                                                                if (year.length === 2) {
+                                                                    const currentYear = new Date().getFullYear();
+                                                                    const century = Math.floor(currentYear / 100) * 100;
+                                                                    year = parseInt(year) + century;
+                                                                    if (year > currentYear) {
+                                                                        year -= 100;
+                                                                    }
+                                                                }
+                                                                
+                                                                dateOfBirthField.value = `${year}-${month}-${day}`;
+                                                            } else {
+                                                                // If we can't parse it, just set it as is
+                                                                dateOfBirthField.value = dateOfBirth;
+                                                            }
+                                                        }
+                                                        console.log("Set Date of Birth field to:", dateOfBirthField.value);
+                                                    } catch (e) {
+                                                        console.error("Error formatting date:", e);
+                                                        // If there's an error, just set the raw value
+                                                        dateOfBirthField.value = dateOfBirth;
+                                                    }
+                                                }
+                                                
+                                                // Fill Birth Place
+                                                const birthPlace = findValueByPatterns(ocrData, birthPlacePatterns);
+                                                if (birthPlace && birthPlaceField) {
+                                                    birthPlaceField.value = birthPlace;
+                                                    console.log("Set Birth Place field to:", birthPlace);
+                                                }
+                                                
+                                                // Fill Residence
+                                                const residence = findValueByPatterns(ocrData, residencePatterns);
+                                                if (residence && residenceField) {
+                                                    residenceField.value = residence;
+                                                    console.log("Set Residence field to:", residence);
+                                                }
+                                                
+                                                // Fill Street
+                                                const street = findValueByPatterns(ocrData, streetPatterns);
+                                                if (street && streetField) {
+                                                    streetField.value = street;
+                                                    console.log("Set Street field to:", street);
+                                                }
+                                                
+                                                // Fill Ethnic Origin
+                                                const ethnicOrigin = findValueByPatterns(ocrData, ethnicOriginPatterns);
+                                                if (ethnicOrigin && ethnicOriginField) {
+                                                    ethnicOriginField.value = ethnicOrigin;
+                                                    console.log("Set Ethnic Origin field to:", ethnicOrigin);
+                                                }
+                                                
+                                                // Fill Language
+                                                const language = findValueByPatterns(ocrData, languagePatterns);
+                                                if (language && languageField) {
+                                                    languageField.value = language;
+                                                    console.log("Set Language field to:", language);
+                                                }
+                                                
+                                                console.log("Field mapping completed");
+                                            }
+                                        </script>
                                     </div>
                                     <div id="ocrStatus" class="mt-2 small"></div>
                                     <div class="mt-2 small text-muted">
@@ -1962,25 +2317,164 @@
 
         // Monthly income is now auto-filled via the value attribute in the input field
         
-        // OCR Document Processing
+        // OCR Document Processing Function
+        function processOcrDocument() {
+            console.log("processOcrDocument function called");
+            const ocrFileUpload = document.getElementById('ocrFileUpload');
+            const ocrStatus = document.getElementById('ocrStatus');
+            
+            if (!ocrFileUpload || !ocrFileUpload.files || !ocrFileUpload.files.length) {
+                console.log("No file selected");
+                ocrStatus.innerHTML = '<span class="text-danger">Please select a document to scan</span>';
+                return;
+            }
+            
+            console.log("File selected:", ocrFileUpload.files[0].name);
+            const file = ocrFileUpload.files[0];
+            const formData = new FormData();
+            formData.append('file', file); // Changed from 'form_image' to 'file'
+            
+            // Check if file is PDF
+            const isPdf = file.type === 'application/pdf';
+            console.log("File type:", file.type, "Is PDF:", isPdf);
+            
+            // Update status message based on file type
+            if (isPdf) {
+                ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing PDF document, this may take longer...</span>';
+            } else {
+                ocrStatus.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing document, please wait...</span>';
+            }
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            console.log("CSRF Token:", csrfToken ? "Found" : "Not found");
+            
+            // Send to API endpoint
+            fetch('/ocr/process', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log("OCR Response received:", response.status);
+                
+                // Enhanced error logging
+                if (!response.ok) {
+                    // Clone the response to read it twice
+                    return response.text().then(text => {
+                        console.error("OCR Error Response:", {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: Object.fromEntries([...response.headers.entries()]),
+                            body: text
+                        });
+                        throw new Error('Network response was not ok: ' + response.status + ' - ' + text);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("OCR Data received:", data);
+                if (data.success) {
+                    ocrStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Document processed successfully!</span>';
+                    
+                    // Fill form fields with extracted data
+                    fillFormFields(data);
+                } else {
+                    console.error("OCR Error:", data.message || "Unknown error");
+                    ocrStatus.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ${data.message || 'Error processing document'}</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('OCR processing error:', error);
+                ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error processing document: ' + error.message + '</span>';
+            });
+        }
+        
+        // Helper function to fill form fields with fallback patterns
+        function fillFormFields(data) {
+            if (data.data) {
+                console.log("Filling form fields with data:", data.data);
+                
+                // Last name with fallback patterns
+                const lastNameValue = 
+                    data.data.last_name || 
+                    data.data.lastname || 
+                    data.data.surname || 
+                    data.data.family_name || 
+                    data.data.familyname || 
+                    data.data.lname;
+                
+                if (lastNameValue) document.querySelector('input[name="last_name"]').value = lastNameValue;
+                
+                // First name with fallback patterns
+                const firstNameValue = 
+                    data.data.first_name || 
+                    data.data.firstname || 
+                    data.data.given_name || 
+                    data.data.givenname || 
+                    data.data.name || 
+                    data.data.name_first || 
+                    data.data.maiden_name || 
+                    data.data.fname;
+                
+                if (firstNameValue) document.querySelector('input[name="first_name"]').value = firstNameValue;
+                
+                // Middle name with fallback patterns
+                const middleNameValue = 
+                    data.data.middle_name || 
+                    data.data.middlename || 
+                    data.data.middle_initial || 
+                    data.data.middleinitial || 
+                    data.data.mname || 
+                    data.data.mi;
+                
+                if (middleNameValue) document.querySelector('input[name="middle_name"]').value = middleNameValue;
+                
+                // Other fields without fallbacks
+                if (data.data.date_of_birth) document.querySelector('input[name="date_of_birth"]').value = data.data.date_of_birth;
+                if (data.data.birth_place) document.querySelector('input[name="birth_place"]').value = data.data.birth_place;
+                
+                console.log("Form fields filled successfully");
+            } else {
+                console.error("No data available to fill form fields");
+            }
+        }
+        
+        // Original OCR Document Processing (keeping for compatibility)
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM Content Loaded - Setting up OCR functionality");
             const ocrFileUpload = document.getElementById('ocrFileUpload');
             const processOcrBtn = document.getElementById('processOcrBtn');
             const ocrStatus = document.getElementById('ocrStatus');
             
+            console.log("OCR Button:", processOcrBtn);
+            console.log("OCR File Upload:", ocrFileUpload);
+            console.log("OCR Status:", ocrStatus);
+            
             if (processOcrBtn) {
-                processOcrBtn.addEventListener('click', function() {
-                    if (!ocrFileUpload.files.length) {
+                console.log("Adding click event listener to OCR button");
+                processOcrBtn.addEventListener('click', function(e) {
+                    console.log("OCR Scan button clicked");
+                    e.preventDefault();
+                    
+                    if (!ocrFileUpload || !ocrFileUpload.files || !ocrFileUpload.files.length) {
+                        console.log("No file selected");
                         ocrStatus.innerHTML = '<span class="text-danger">Please select a document to scan</span>';
                         return;
                     }
                     
+                    console.log("File selected:", ocrFileUpload.files[0].name);
                     const file = ocrFileUpload.files[0];
                     const formData = new FormData();
-                    formData.append('document', file);
+                    formData.append('form_image', file);
                     
                     // Check if file is PDF
                     const isPdf = file.type === 'application/pdf';
+                    console.log("File type:", file.type, "Is PDF:", isPdf);
                     
                     // Update status message based on file type
                     if (isPdf) {
@@ -1990,14 +2484,27 @@
                     }
                     
                     // Send to API endpoint
-                    fetch('/api/vision/process-form', {
+                    console.log("Sending OCR request to server...");
+                    
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    console.log("CSRF Token:", csrfToken ? "Found" : "Not found");
+                    
+                    // Use the correct API endpoint
+                    fetch('/ocr/process', {
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            'X-CSRF-TOKEN': csrfToken || ''
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log("OCR Response received:", response.status);
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.status);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             // Check if processing is asynchronous (for PDF files)
@@ -2042,9 +2549,14 @@
                             ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Processing failed: ' + data.message + '</span>';
                         }
                     })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error processing document. Please try again.</span>';
+                    });
                     
                     // Helper function to fill form fields
                     function fillFormFields(data) {
+                        if (data.data) {
                             if (data.data.last_name) document.querySelector('input[name="last_name"]').value = data.data.last_name;
                             if (data.data.first_name) document.querySelector('input[name="first_name"]').value = data.data.first_name;
                             if (data.data.middle_name) document.querySelector('input[name="middle_name"]').value = data.data.middle_name;
@@ -2069,14 +2581,11 @@
                         } else {
                             ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ' + (data.message || 'Error processing document') + '</span>';
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        ocrStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Error processing document. Please try again.</span>';
-                    });
+                    }
                 });
-            }
-        });
+            });
+        }
+    });
     </script>
   </x-head>
 </x-sidebar>

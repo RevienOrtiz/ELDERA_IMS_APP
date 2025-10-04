@@ -199,6 +199,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('add_new_senior');
 });
 
+// OCR Processing Route
+Route::post('/ocr/process', [App\Http\Controllers\Api\OCRController::class, 'process']);
+
 // Legacy logout route (keeping for compatibility)
 Route::get('/logout', function () {
     // Clear any session data

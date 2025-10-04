@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Google\Cloud\Vision\V1\ImageAnnotatorClient;
 use Google\Cloud\Vision\V1\Feature\Type;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class GoogleVisionController extends Controller
@@ -37,7 +39,7 @@ class GoogleVisionController extends Controller
                 $jobId = uniqid('ocr_job_');
                 
                 // Store job information in cache
-                \Cache::put('ocr_job_' . $jobId, [
+                Cache::put('ocr_job_' . $jobId, [
                     'status' => 'processing',
                     'file_path' => $fullPath,
                     'created_at' => now()
@@ -53,7 +55,7 @@ class GoogleVisionController extends Controller
                         $formData = $this->mapExtractedTextToFormFields($extractedText);
                         
                         // Update job status in cache
-                        \Cache::put('ocr_job_' . $jobId, [
+                        Cache::put('ocr_job_' . $jobId, [
                             'status' => 'completed',
                             'data' => $formData,
                             'completed_at' => now()
@@ -62,10 +64,10 @@ class GoogleVisionController extends Controller
                         // Delete the temporary file
                         Storage::disk('public')->delete(str_replace(Storage::disk('public')->path(''), '', $fullPath));
                     } catch (\Exception $e) {
-                        \Log::error('Async PDF processing error: ' . $e->getMessage());
+                        Log::error('Async PDF processing error: ' . $e->getMessage());
                         
                         // Update job status in cache
-                        \Cache::put('ocr_job_' . $jobId, [
+                        Cache::put('ocr_job_' . $jobId, [
                             'status' => 'failed',
                             'message' => $e->getMessage(),
                             'completed_at' => now()
@@ -112,7 +114,7 @@ class GoogleVisionController extends Controller
     public function checkStatus($jobId)
     {
         // Get job information from cache
-        $jobInfo = \Cache::get('ocr_job_' . $jobId);
+        $jobInfo = Cache::get('ocr_job_' . $jobId);
         
         if (!$jobInfo) {
             return response()->json([
@@ -173,7 +175,7 @@ class GoogleVisionController extends Controller
                 $texts = $response->getTextAnnotations();
                 $imageAnnotator->close();
                 
-                if (count($texts) === 0) {
+                if ($texts === null || !isset($texts[0])) {
                     return '';
                 }
                 
@@ -182,7 +184,7 @@ class GoogleVisionController extends Controller
             }
         } catch (\Exception $e) {
             // If there's an error with the API, fall back to simulated response
-            \Log::error('Google Vision API error: ' . $e->getMessage());
+            Log::error('Google Vision API error: ' . $e->getMessage());
             
             // Simulated response for demonstration/fallback
             return "SENIOR CITIZEN INFORMATION\nLast Name: DELA CRUZ\nFirst Name: JUAN\nMiddle Name: SANTOS\nDate of Birth: 01/15/1950\nAddress: 123 MAIN ST, MANILA\nSenior Citizen ID: SC-12345678\nContact Number: 09123456789\nMarital Status: WIDOWED";
@@ -232,7 +234,7 @@ class GoogleVisionController extends Controller
             // Simulated response for PDF processing
             return "SENIOR CITIZEN INFORMATION\nLast Name: DELA CRUZ\nFirst Name: JUAN\nMiddle Name: SANTOS\nDate of Birth: 01/15/1950\nAddress: 123 MAIN ST, MANILA\nSenior Citizen ID: SC-12345678\nContact Number: 09123456789\nMarital Status: WIDOWED";
         } catch (\Exception $e) {
-            \Log::error('Google Vision PDF processing error: ' . $e->getMessage());
+            Log::error('Google Vision PDF processing error: ' . $e->getMessage());
             throw $e;
         }
     }

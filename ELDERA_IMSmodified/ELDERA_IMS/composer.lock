@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "294d4f653d5f80ababe9d857cae42319",
+    "content-hash": "34f1fd9214becc2771b666fb8349539a",
     "packages": [
         {
             "name": "brick/math",
@@ -772,30 +772,27 @@
         },
         {
             "name": "google/cloud-vision",
-            "version": "v2.1.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-vision.git",
-                "reference": "04e180f7a380527589a6119ce86934a9de8d9599"
+                "reference": "a5fd2f4262a7d272bf01bae7967f626475dedfdf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-vision/zipball/04e180f7a380527589a6119ce86934a9de8d9599",
-                "reference": "04e180f7a380527589a6119ce86934a9de8d9599",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-vision/zipball/a5fd2f4262a7d272bf01bae7967f626475dedfdf",
+                "reference": "a5fd2f4262a7d272bf01bae7967f626475dedfdf",
                 "shasum": ""
             },
             "require": {
-                "google/cloud-core": "^1.57",
-                "google/gax": "^1.38.0",
-                "php": "^8.1"
+                "google/cloud-core": "^1.39",
+                "google/gax": "^1.1"
             },
             "require-dev": {
                 "erusev/parsedown": "^1.6",
                 "google/cloud-storage": "^1.12",
-                "phpdocumentor/reflection": "^5.3.3||^6.0",
-                "phpdocumentor/reflection-docblock": "^5.3",
-                "phpspec/prophecy-phpunit": "^2.0",
-                "phpunit/phpunit": "^9.0",
+                "phpdocumentor/reflection": "^3.0",
+                "phpunit/phpunit": "^4.8|^5.0",
                 "squizlabs/php_codesniffer": "2.*"
             },
             "suggest": {
@@ -824,9 +821,9 @@
             ],
             "description": "Cloud Vision Client for PHP",
             "support": {
-                "source": "https://github.com/googleapis/google-cloud-php-vision/tree/v2.1.0"
+                "source": "https://github.com/googleapis/google-cloud-php-vision/tree/v1.4.0"
             },
-            "time": "2025-09-20T01:29:44+00:00"
+            "time": "2021-08-27T00:41:47+00:00"
         },
         {
             "name": "google/common-protos",
@@ -6912,6 +6909,55 @@
                 }
             ],
             "time": "2025-08-13T11:49:31+00:00"
+        },
+        {
+            "name": "thiagoalessio/tesseract_ocr",
+            "version": "2.13.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thiagoalessio/tesseract-ocr-for-php.git",
+                "reference": "232a8cb9d571992f9bd1e263f2f6909cf6c173a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thiagoalessio/tesseract-ocr-for-php/zipball/232a8cb9d571992f9bd1e263f2f6909cf6c173a1",
+                "reference": "232a8cb9d571992f9bd1e263f2f6909cf6c173a1",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.3 || ^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "^2.2.4 || ^9.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "thiagoalessio\\TesseractOCR\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "thiagoalessio",
+                    "email": "thiagoalessio@me.com"
+                }
+            ],
+            "description": "A wrapper to work with Tesseract OCR inside PHP.",
+            "keywords": [
+                "OCR",
+                "Tesseract",
+                "text recognition"
+            ],
+            "support": {
+                "irc": "irc://irc.freenode.net/tesseract-ocr-for-php",
+                "issues": "https://github.com/thiagoalessio/tesseract-ocr-for-php/issues",
+                "source": "https://github.com/thiagoalessio/tesseract-ocr-for-php"
+            },
+            "time": "2023-10-05T21:14:48+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",

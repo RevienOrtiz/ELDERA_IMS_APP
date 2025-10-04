@@ -56,6 +56,7 @@
                                       @if($senior->has_pension)
                                       <span class="status-badge badge-pension">Pension ✓</span>
                                       @endif
+                                      <p class="text-muted small mt-1" style="text-align: left;">Record created: {{ $senior->created_at->format('F j, Y, g:i a') }}</p>
                                
                               </div>
                           </div>

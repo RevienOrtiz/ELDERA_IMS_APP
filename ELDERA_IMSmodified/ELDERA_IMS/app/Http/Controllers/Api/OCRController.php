@@ -115,6 +115,12 @@ class OCRController extends Controller
                  $oscaId = trim($matches[1]);
              } elseif (preg_match('/osca\s*id\s*[:=]?\s*([A-Za-z0-9\-]+)/i', $outputText, $matches)) {
                  $oscaId = trim($matches[1]);
+             } elseif (preg_match('/osca\s*[:=]?\s*([0-9]{4}-[0-9]{4})/i', $outputText, $matches)) {
+                 $oscaId = trim($matches[1]);
+             } elseif (preg_match('/osca\s*[:=]?\s*([0-9]{4}-[0-9]{3,4})/i', $outputText, $matches)) {
+                 $oscaId = trim($matches[1]);
+             } elseif (preg_match('/osca\s*[:=]?\s*(\d+[-\s]?\d+)/i', $outputText, $matches)) {
+                 $oscaId = trim($matches[1]);
              }
              
              // Extract GSIS/SSS - multiple patterns
